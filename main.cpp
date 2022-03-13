@@ -42,12 +42,14 @@ SOFTWARE.
 #include "OverlayStandings.h"
 #include "OverlayDebug.h"
 #include "OverlayDDU.h"
+#include "OverlayHUD.h"
 
 enum class Hotkey
 {
     UiEdit,
     Standings,
     DDU,
+    HUD,
     Inputs,
     Relative,
     Cover
@@ -58,6 +60,7 @@ static void registerHotkeys()
     UnregisterHotKey( NULL, (int)Hotkey::UiEdit );
     UnregisterHotKey( NULL, (int)Hotkey::Standings );
     UnregisterHotKey( NULL, (int)Hotkey::DDU );
+    UnregisterHotKey( NULL, (int)Hotkey::HUD);
     UnregisterHotKey( NULL, (int)Hotkey::Inputs );
     UnregisterHotKey( NULL, (int)Hotkey::Relative );
     UnregisterHotKey( NULL, (int)Hotkey::Cover );
@@ -81,6 +84,9 @@ static void registerHotkeys()
 
     if( parseHotkey( g_cfg.getString("OverlayCover","toggle_hotkey","ctrl-4"),&mod,&vk) )
         RegisterHotKey( NULL, (int)Hotkey::Cover, mod, vk );
+
+    if (parseHotkey(g_cfg.getString("OverlayHUD", "toggle_hotkey", "ctrl-5"), &mod, &vk))
+        RegisterHotKey(NULL, (int)Hotkey::HUD, mod, vk);
 }
 
 static void handleConfigChange( std::vector<Overlay*> overlays, ConnectionStatus status )
@@ -122,6 +128,7 @@ int main()
     printf("    Toggle inputs overlay:        %s\n", g_cfg.getString("OverlayInputs","toggle_hotkey","").c_str() );
     printf("    Toggle relative overlay:      %s\n", g_cfg.getString("OverlayRelative","toggle_hotkey","").c_str() );
     printf("    Toggle cover overlay:         %s\n", g_cfg.getString("OverlayCover","toggle_hotkey","").c_str() );
+    printf("    Toggle HUD overlay:           %s\n", g_cfg.getString("OverlayHUD", "toggle_hotkey", "").c_str());
     printf("\niRon will generate a file called \'config.json\' in its current directory. This file\n"\
            "stores your settings. You can edit the file at any time, even while iRon is running,\n"\
            "to customize your overlays and hotkeys.\n\n");
@@ -137,6 +144,7 @@ int main()
     overlays.push_back( new OverlayInputs() );
     overlays.push_back( new OverlayStandings() );
     overlays.push_back( new OverlayDDU() );
+    overlays.push_back( new OverlayHUD() );
 #ifdef _DEBUG
     overlays.push_back( new OverlayDebug() );
 #endif
@@ -200,7 +208,7 @@ int main()
                         g_cfg.setBool( "OverlayStandings", "enabled", !g_cfg.getBool("OverlayStandings","enabled",true) );
                         break;
                     case (int)Hotkey::DDU:
-                        g_cfg.setBool( "OverlayDDU", "enabled", !g_cfg.getBool("OverlayDDU","enabled",true) );
+                        g_cfg.setBool( "OverlayDDU", "enabled", !g_cfg.getBool("OverlayDDU","enabled",false) );
                         break;
                     case (int)Hotkey::Inputs:
                         g_cfg.setBool( "OverlayInputs", "enabled", !g_cfg.getBool("OverlayInputs","enabled",true) );
@@ -210,6 +218,9 @@ int main()
                         break;
                     case (int)Hotkey::Cover:
                         g_cfg.setBool( "OverlayCover", "enabled", !g_cfg.getBool("OverlayCover","enabled",true) );
+                        break;
+                    case (int)Hotkey::HUD:
+                        g_cfg.setBool("OverlayHUD", "enabled", !g_cfg.getBool("OverlayHUD", "enabled", true));
                         break;
                     }
                     
