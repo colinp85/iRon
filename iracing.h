@@ -82,6 +82,7 @@ struct Session
     int             driverCarIdx = -1;
     int             sof = 0;
     int             subsessionId = 0;
+    int             seriesId = 0;
     int             isFixedSetup = 0;
     int             isUnlimitedTime = 0;
     int             isUnlimitedLaps = 0;

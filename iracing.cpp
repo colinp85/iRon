@@ -397,6 +397,9 @@ ConnectionStatus ir_tick()
         sprintf( path, "WeekendInfo:SubSessionID:" );
         parseYamlInt( sessionYaml, path, &ir_session.subsessionId );
 
+        sprintf( path, "WeekendInfo:SeriesID:" );
+        parseYamlInt( sessionYaml, path, &ir_session.seriesId );
+
         sprintf( path, "WeekendInfo:WeekendOptions:IsFixedSetup:" );
         parseYamlInt( sessionYaml, path, &ir_session.isFixedSetup );
 

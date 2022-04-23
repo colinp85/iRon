@@ -27,6 +27,8 @@ SOFTWARE.
 #include <vector>
 #include <algorithm>
 #include <deque>
+#include <sstream>
+#include <iomanip>
 #include <time.h>
 #include "Overlay.h"
 #include "iracing.h"
@@ -140,26 +142,30 @@ protected:
 
             const float w1 = 1.0f - (2 * hgap);
             const float w2 = (1.0f - (3 * hgap)) / 2;
+            const float w3 = (1.0f - (4 * hgap)) / 3;
 
-            const float maxh = 1.0f - vgap - vtop - 0.2f - vgap;
+            const float maxh = 1.0f - vtop - vgap;
             const float h1 = maxh;
-            const float h2 = ((maxh - vgap) / 3) * 2;
-            const float h3 = ((maxh - vgap) / 3);
+            const float h3 = ((maxh - (2 * vgap)) / 3);
+            const float h2 = (h3 * 2) + vgap;
 
-            m_boxFuel = makeBox(hgap, w2, vtop, h1, "Fuel");
-            addBoxFigure(geometrySink.Get(), m_boxFuel);
+			m_boxFuel = makeBox(hgap, w3, vtop, h1, "Fuel");
+			addBoxFigure(geometrySink.Get(), m_boxFuel);
 
-            m_boxSession = makeBox(hgap * 2 + w2, w2, vtop, h3, "Session");
-            addBoxFigure(geometrySink.Get(), m_boxSession);
+			m_boxSession = makeBox(hgap * 2 + w3, w3, vtop, h3, "Session");
+			addBoxFigure(geometrySink.Get(), m_boxSession);
 
-            m_boxLaps = makeBox(hgap * 2 + w2, w2, vtop + vgap + h3, h2, "Lap");
-            addBoxFigure(geometrySink.Get(), m_boxLaps);
+			m_boxLaps = makeBox(hgap * 2 + w3, w3, vtop + h3 + vgap, h2, "Lap");
+			addBoxFigure(geometrySink.Get(), m_boxLaps);
 
-            m_boxTime = makeBox(hgap, w2, vtop + maxh + vgap, 0.2f, "TOD");
-            addBoxFigure(geometrySink.Get(), m_boxTime);
+			m_boxTime = makeBox(hgap * 3 + 2 * w3, w3, vtop, h3, "TOD");
+			addBoxFigure(geometrySink.Get(), m_boxTime);
 
-            m_boxIncs = makeBox(hgap * 2 + w2, w2, vtop + maxh + vgap, 0.2f, "Incs");
-            addBoxFigure(geometrySink.Get(), m_boxIncs);
+			m_boxIncs = makeBox(hgap * 3 + 2 * w3, w3, vtop + h3 + vgap, h3, "Incs");
+			addBoxFigure(geometrySink.Get(), m_boxIncs);
+
+			m_boxTrackTemp = makeBox(hgap * 3 + 2 * w3, w3, vtop + h3 + vgap + h3 + vgap, h3, "TTemp");
+			addBoxFigure(geometrySink.Get(), m_boxTrackTemp);
 
             geometrySink->Close();
         }
@@ -171,8 +177,130 @@ protected:
         m_fuelUsedLastLaps.clear(); // session has changed, clear the lap history
     }
 
-    virtual void onUpdate()
+    virtual bool isImperial()
     {
+        return ir_DisplayUnits.getInt() == 0;
+    }
+
+    virtual bool isTimeLimited()
+    {
+        return ir_SessionLapsTotal.getInt() == 32767 && ir_SessionTimeRemain.getDouble() < 48.0 * 3600.0;
+    }
+
+
+    virtual double getRemainingSessionTime()
+    {
+        return isTimeLimited() ? ir_SessionTimeRemain.getDouble() : -1;
+    }
+
+    virtual double getRemainingLaps()
+    {
+        if (isTimeLimited())
+            return (0.5 + ir_SessionTimeRemain.getDouble() / ir_estimateLaptime());
+        else
+            return (double)(ir_SessionLapsRemainEx.getInt() != 32767 ? ir_SessionLapsRemainEx.getInt() : -1);
+    }
+
+    virtual void setTrackTemp()
+    {
+        // setTrackTemp;
+        std::wstringstream tempwss;
+        tempwss.precision(3);
+        tempwss << ir_TrackTemp.getFloat();
+
+        if (isImperial())
+            tempwss << "F";
+        else
+            tempwss << "C";
+
+		m_text.render(m_renderTarget.Get(), tempwss.str().c_str(), m_textFormat.Get(), m_boxTrackTemp.x0, m_boxTrackTemp.x1, m_boxTrackTemp.y0 + m_boxTrackTemp.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+    }
+
+    virtual void setTimeOfDay()
+    {
+		time_t     now = time(0);
+		struct tm  tstruct;
+		char       timeStr[9];
+		tstruct = *localtime(&now);
+
+		strftime(timeStr, sizeof(timeStr), "%H:%M", &tstruct);
+        std::wstringstream twss;
+        twss << timeStr;
+		
+		m_text.render(m_renderTarget.Get(), twss.str().c_str(), m_textFormatSmall.Get(), m_boxTime.x0, m_boxTime.x1, m_boxTime.y0 + m_boxTime.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+    }
+
+    virtual void setLaps()
+    {
+        wchar_t lapstr[100];
+        const double remainingLaps = getRemainingLaps();
+
+        if (ir_session.sessionType == SessionType::UNKNOWN || remainingLaps < 0)
+            swprintf(lapstr, _countof(lapstr), L"--");
+        else if (isTimeLimited())
+            swprintf(lapstr, _countof(lapstr), L"~%.01f", remainingLaps);
+        else
+			swprintf(lapstr, _countof(lapstr), L"%d", (int)remainingLaps);
+
+		m_text.render(m_renderTarget.Get(), lapstr, m_textFormatLarge.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.40f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+		m_text.render(m_renderTarget.Get(), L"TO GO", m_textFormatVerySmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.75f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+    }
+
+    virtual void setSessionTime()
+    {
+        std::wstringstream ss;
+        const double remainingSessionTime = getRemainingSessionTime();
+
+        if (!isTimeLimited() || ir_session.sessionType == SessionType::UNKNOWN)
+            ss << "-";
+		else
+		{
+			const double sessionTime = remainingSessionTime >= 0 ? remainingSessionTime : ir_SessionTime.getDouble();
+
+			const int    hours = int(sessionTime / 3600.0);
+			const int    mins = int(sessionTime / 60.0) % 60;
+			const int    secs = (int)fmod(sessionTime, 60.0);
+
+            std::string sess;
+            switch (ir_session.sessionType)
+            {
+            case SessionType::UNKNOWN:
+                sess.assign("U");
+                break;
+            case SessionType::PRACTICE:
+                sess.assign("P");
+                break;
+            case SessionType::QUALIFY:
+                sess.assign("Q");
+                break;
+            case SessionType::RACE:
+                sess.assign("R");
+                break;
+            default:
+                sess.assign("");
+                break;
+            }
+
+            if (hours)
+                ss << sess.c_str() << ": " << hours << ":";
+			ss << std::setfill(L'0') << std::setw(2) << mins << ":";
+			ss << std::setfill(L'0') << std::setw(2) << secs;
+		}
+
+		m_text.render(m_renderTarget.Get(), ss.str().c_str(), m_textFormatSmall.Get(), m_boxSession.x0, m_boxSession.x1, m_boxSession.y0 + m_boxSession.h * 0.55f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+    }
+
+    virtual void setIncs()
+	{
+        std::wstringstream wss;
+		const int inc = ir_PlayerCarMyIncidentCount.getInt();
+        wss << ir_PlayerCarMyIncidentCount.getInt() << "x";
+		m_text.render(m_renderTarget.Get(), wss.str().c_str(), m_textFormat.Get(), m_boxIncs.x0, m_boxIncs.x1, m_boxIncs.y0 + m_boxIncs.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+	}
+
+    virtual void setFuel(bool lapCountUpdated)
+    {
+		const float xoff = 7;
         const float  fontSize = g_cfg.getFloat(m_name, "font_size", DefaultFontSize);
         const float4 outlineCol = g_cfg.getFloat4(m_name, "outline_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
         const float4 textCol = g_cfg.getFloat4(m_name, "text_col", float4(1, 1, 1, 0.9f));
@@ -183,237 +311,217 @@ protected:
         const float4 warnCol = g_cfg.getFloat4(m_name, "warn_col", float4(1, 0.6f, 0, 1));
 
         const int  carIdx = ir_session.driverCarIdx;
-        const bool imperial = ir_DisplayUnits.getInt() == 0;
 
+        /* Progress Bar*/
+		const float x0 = m_boxFuel.x0 + xoff;
+		const float x1 = m_boxFuel.x1 - xoff;
+		D2D1_RECT_F r = { x0, m_boxFuel.y0 + 12, x1, m_boxFuel.y0 + m_boxFuel.h * 0.11f };
+		m_brush->SetColor(float4(0.5f, 0.5f, 0.5f, 0.5f));
+		m_renderTarget->FillRectangle(&r, m_brush.Get());
+
+		const float fuelPct = ir_FuelLevelPct.getFloat();
+		r = { x0, m_boxFuel.y0 + 12, x0 + fuelPct * (x1 - x0), m_boxFuel.y0 + m_boxFuel.h * 0.11f };
+		m_brush->SetColor(fuelPct < 0.1f ? warnCol : goodCol);
+		m_renderTarget->FillRectangle(&r, m_brush.Get());
+        /* End Progress Bar */
+
+		m_brush->SetColor(textCol);
+		m_text.render(m_renderTarget.Get(), L"Laps", m_textFormat.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 2.8f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+		m_text.render(m_renderTarget.Get(), L"Remain", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 5.1f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+		m_text.render(m_renderTarget.Get(), L"Avg", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 6.9f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+		m_text.render(m_renderTarget.Get(), L"Finish", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 8.7f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+		m_text.render(m_renderTarget.Get(), L"Refuel", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 10.5f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+
+		const float additionalFuel = g_cfg.getFloat(m_name, "fuel_additional_fuel", 0.0f);
+		const float estimateFactor = g_cfg.getFloat(m_name, "fuel_estimate_factor", 1.05f);
+		const bool autoRefuel = g_cfg.getBool(m_name, "fuel_auto_refuel", false);
+		const bool allLapsCount = g_cfg.getBool(m_name, "fuel_all_laps_count", false);
+		const float remainingFuel = ir_FuelLevel.getFloat();
+        const int remainingLaps = getRemainingLaps();
+		
+		// Update average fuel consumption tracking. Ignore laps that weren't entirely under green or where we pitted.
+		float sum = 0;
+		float used = 0;
+        float avgPerLap = 0;
+
+        if (lapCountUpdated)
+        {
+            used = std::max(0.0f, m_lapStartRemainingFuel - remainingFuel);
+
+            dbg("last lap: %3.1f", used);
+            m_lapStartRemainingFuel = remainingFuel;
+
+            if (m_isValidFuelLap)
+                m_fuelUsedLastLaps.push_back(used);
+
+            const int numLapsToAvg = g_cfg.getInt(m_name, "fuel_estimate_avg_green_laps", 5);
+
+            if (numLapsToAvg > 0)
+            {
+                while (m_fuelUsedLastLaps.size() >= numLapsToAvg)
+                    m_fuelUsedLastLaps.pop_front();
+            }
+
+			m_isValidFuelLap = true;
+		}
+
+        if (!allLapsCount)
+        {
+            if ((ir_SessionFlags.getInt() & (irsdk_yellow | irsdk_yellowWaving | irsdk_red | irsdk_checkered | irsdk_crossed | irsdk_oneLapToGreen | irsdk_caution | irsdk_cautionWaving | irsdk_disqualify | irsdk_repair)) || ir_CarIdxOnPitRoad.getBool(carIdx))
+            {
+                dbg("invalid fuel lap");
+                m_isValidFuelLap = false;
+            }
+        }
+
+		for (float v : m_fuelUsedLastLaps) {
+			sum += v;
+			dbg("sum: %f", sum);
+		}
+        if (!m_fuelUsedLastLaps.empty())
+            avgPerLap = sum / (float)m_fuelUsedLastLaps.size();
+
+		dbg("lap valid: %d, last: %3.1f, avg: %3.1f", (int)m_isValidFuelLap, used, avgPerLap);
+
+		// Est Laps
+		const float perLapUsage = avgPerLap * estimateFactor;  // conservative estimate of per-lap use for further calculations
+		if (perLapUsage > 0)
+		{
+            std::wstringstream estLapswss;
+            estLapswss.precision(3);
+            estLapswss << remainingFuel / perLapUsage;
+
+			m_text.render(m_renderTarget.Get(), estLapswss.str().c_str(), m_textFormatBold.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 2.8f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+		}
+
+		// Remaining
+		if (remainingFuel >= 0)
+		{
+			dbg("amount of fuel rem: %3.1f", remainingFuel);
+
+            std::wstringstream remainingwss;
+            remainingwss.precision(3);
+            remainingwss << remainingFuel;
+
+            if (isImperial())
+                remainingwss << " gl";
+            else
+                remainingwss << " lt";
+			m_text.render(m_renderTarget.Get(), remainingwss.str().c_str(), m_textFormat.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 5.1f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+		}
+
+		// Per Lap
+		if (avgPerLap > 0)
+		{
+            std::wstringstream aplwss;
+            aplwss.precision(3);
+
+			float val = avgPerLap;
+            if (isImperial())
+            {
+                val *= 0.264172f;
+                aplwss << val << " gl";
+            }
+            else
+                aplwss << val << " lt";
+
+			m_text.render(m_renderTarget.Get(), aplwss.str().c_str(), m_textFormat.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 6.9f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+		}
+
+		// To Finish
+		if (remainingLaps >= 0 && perLapUsage > 0)
+		{
+			float atFinish = std::max(0.0f, remainingFuel - (float)remainingLaps * perLapUsage);
+			float add = 0;
+
+			//if (toFinish > ir_PitSvFuel.getFloat() || (toFinish > 0 && !ir_dpFuelFill.getFloat()))
+			//{
+			//	m_brush->SetColor(warnCol);
+			//	add = toFinish;
+			//}
+			//else
+			//	m_brush->SetColor(goodCol);
+
+			if (atFinish <= 0)
+			{
+				add = (remainingLaps * perLapUsage) - remainingFuel;
+                if (additionalFuel > 0)
+                    add += perLapUsage * additionalFuel;
+			}
+
+            std::wstringstream finwss;
+            finwss.precision(3);
+
+            if (isImperial())
+            {
+                atFinish *= 0.264172f;
+                finwss << atFinish << " gl";
+            }
+            else
+                finwss << atFinish << " lt";
+
+			m_text.render(m_renderTarget.Get(), finwss.str().c_str(), m_textFormat.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 8.7f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+			m_brush->SetColor(textCol);
+
+			// Add
+			if (add >= 0)
+			{
+                std::wstringstream addwss;
+                addwss.precision(3);
+                addwss << add;
+
+                if (isImperial())
+                    addwss << " gl";
+                else
+                    addwss << " lt";
+
+				if (ir_dpFuelFill.getFloat())
+					m_brush->SetColor(serviceCol);
+
+				m_text.render(m_renderTarget.Get(), addwss.str().c_str(), m_textFormat.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 10.5f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+				m_brush->SetColor(textCol);
+
+				if (autoRefuel)
+					irsdk_broadcastMsg(irsdk_BroadcastPitCommand, irsdk_PitCommand_Fuel, add);
+			}
+		}
+
+    }
+
+    virtual void onUpdate()
+    {
+        const float4 textCol = g_cfg.getFloat4(m_name, "text_col", float4(1, 1, 1, 0.9f));
+        const float4 outlineCol = g_cfg.getFloat4(m_name, "outline_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
+        const int  carIdx = ir_session.driverCarIdx;
         const DWORD tickCount = GetTickCount();
-
-        // General lap info
-        const bool   sessionIsTimeLimited = ir_SessionLapsTotal.getInt() == 32767 && ir_SessionTimeRemain.getDouble() < 48.0 * 3600.0;  // most robust way I could find to figure out whether this is a time-limited session (info in session string is often misleading)
-        const double remainingSessionTime = sessionIsTimeLimited ? ir_SessionTimeRemain.getDouble() : -1;
-        const int    remainingLaps = sessionIsTimeLimited ? int(0.5 + remainingSessionTime / ir_estimateLaptime()) : (ir_SessionLapsRemainEx.getInt() != 32767 ? ir_SessionLapsRemainEx.getInt() : -1);
         const int    currentLap = ir_isPreStart() ? 0 : std::max(0, ir_CarIdxLap.getInt(carIdx));
         const bool   lapCountUpdated = currentLap != m_prevCurrentLap;
+
         m_prevCurrentLap = currentLap;
         if (lapCountUpdated)
             m_lastLapChangeTickCount = tickCount;
 
         dbg("isUnlimitedTime: %d, isUnlimitedLaps: %d, rem laps: %d, total laps: %d, rem time: %f", (int)ir_session.isUnlimitedTime, (int)ir_session.isUnlimitedLaps, ir_SessionLapsRemainEx.getInt(), ir_SessionLapsTotal.getInt(), ir_SessionTimeRemain.getFloat());
 
-        wchar_t s[512];
-
         m_renderTarget->BeginDraw();
         m_brush->SetColor(textCol);
 
-        // TOD
-        {
-            time_t     now = time(0);
-            struct tm  tstruct;
-            char       timeStr[9];
-            tstruct = *localtime(&now);
+        setTrackTemp();
+        setTimeOfDay();
+        setLaps();
+        setSessionTime();
+        setIncs();
+        setFuel(lapCountUpdated);
 
-            strftime(timeStr, sizeof(timeStr), "%X", &tstruct);
-            swprintf(s, _countof(s), L"%S", timeStr);
-            
-            //m_text.render(m_renderTarget.Get(), s, m_textFormatLarge.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.55f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-            m_text.render(m_renderTarget.Get(), s, m_textFormatSmall.Get(), m_boxTime.x0, m_boxTime.x1, m_boxTime.y0 + m_boxTime.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-        }
+		m_brush->SetColor(outlineCol);
+		m_renderTarget->DrawGeometry(m_boxPathGeometry.Get(), m_brush.Get());
 
-        // Laps
-        {
-            char lapsStr[32];
-
-            const int totalLaps = ir_SessionLapsTotal.getInt();
-
-            if (totalLaps == SHRT_MAX)
-                sprintf(lapsStr, "--");
-            else
-                sprintf(lapsStr, "%d", totalLaps);
-            swprintf(s, _countof(s), L"%d / %S", currentLap, lapsStr);
-            m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.25f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-
-            if (remainingLaps < 0)
-                sprintf(lapsStr, "--");
-            else if (sessionIsTimeLimited)
-                sprintf(lapsStr, "~%d", remainingLaps);
-            else
-                sprintf(lapsStr, "%d", remainingLaps);
-            swprintf(s, _countof(s), L"%S", lapsStr);
-            m_text.render(m_renderTarget.Get(), s, m_textFormatLarge.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.55f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-
-            m_text.render(m_renderTarget.Get(), L"TO GO", m_textFormatVerySmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.75f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-        }
-
-        // Fuel
-        {
-            const float xoff = 7;
-
-            // Progress bar
-            {
-                const float x0 = m_boxFuel.x0 + xoff;
-                const float x1 = m_boxFuel.x1 - xoff;
-                D2D1_RECT_F r = { x0, m_boxFuel.y0 + 12, x1, m_boxFuel.y0 + m_boxFuel.h * 0.11f };
-                m_brush->SetColor(float4(0.5f, 0.5f, 0.5f, 0.5f));
-                m_renderTarget->FillRectangle(&r, m_brush.Get());
-
-                const float fuelPct = ir_FuelLevelPct.getFloat();
-                r = { x0, m_boxFuel.y0 + 12, x0 + fuelPct * (x1 - x0), m_boxFuel.y0 + m_boxFuel.h * 0.11f };
-                m_brush->SetColor(fuelPct < 0.1f ? warnCol : goodCol);
-                m_renderTarget->FillRectangle(&r, m_brush.Get());
-            }
-
-            m_brush->SetColor(textCol);
-            m_text.render(m_renderTarget.Get(), L"Laps", m_textFormat.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 2.8f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-            m_text.render(m_renderTarget.Get(), L"Remain", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 5.1f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-            m_text.render(m_renderTarget.Get(), L"Avg", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 6.9f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-            m_text.render(m_renderTarget.Get(), L"Finish", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 8.7f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-            m_text.render(m_renderTarget.Get(), L"Refuel", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 10.5f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-
-            const float estimateFactor = g_cfg.getFloat(m_name, "fuel_estimate_factor", 1.05f);
-            const bool autoAdd = g_cfg.getBool(m_name, "auto_fuel_strat", false);
-            if (autoAdd)
-                dbg("running automatic fuel strat");
-            const float remainingFuel = ir_FuelLevel.getFloat();
-            
-            // Update average fuel consumption tracking. Ignore laps that weren't entirely under green or where we pitted.
-            float avgPerLap = 0;
-            float used = 0;
-            {
-                if (lapCountUpdated)
-                {
-                    const float usedLastLap = std::max(0.0f, m_lapStartRemainingFuel - remainingFuel);
-                    used = usedLastLap;
-                    dbg("last lap: %3.1f", usedLastLap);
-                    m_lapStartRemainingFuel = remainingFuel;
-
-                    if (m_isValidFuelLap)
-                        m_fuelUsedLastLaps.push_back(usedLastLap);
-
-                    const int numLapsToAvg = g_cfg.getInt(m_name, "fuel_estimate_avg_green_laps", 4);
-                    while (m_fuelUsedLastLaps.size() > numLapsToAvg)
-                        m_fuelUsedLastLaps.pop_front();
-
-                    m_isValidFuelLap = true;
-                }
-                if ((ir_SessionFlags.getInt() & (irsdk_yellow | irsdk_yellowWaving | irsdk_red | irsdk_checkered | irsdk_crossed | irsdk_oneLapToGreen | irsdk_caution | irsdk_cautionWaving | irsdk_disqualify | irsdk_repair)) || ir_CarIdxOnPitRoad.getBool(carIdx))
-                {
-                    dbg("invalid fuel lap");
-                    m_isValidFuelLap = false;
-                }
-
-                for (float v : m_fuelUsedLastLaps) {
-                    avgPerLap += v;
-                    dbg("sum: %f", v);
-                }
-                if (!m_fuelUsedLastLaps.empty())
-                    avgPerLap /= (float)m_fuelUsedLastLaps.size();
-
-				dbg("lap valid: %d, last: %3.1f, avg: %3.1f", (int)m_isValidFuelLap, used, avgPerLap);
-            }
-
-            // Est Laps
-            const float perLapConsEst = avgPerLap * estimateFactor;  // conservative estimate of per-lap use for further calculations
-            if (perLapConsEst > 0)
-            {
-                const float estLaps = remainingFuel / perLapConsEst;
-                swprintf(s, _countof(s), L"%.*f", estLaps < 10 ? 1 : 0, estLaps);
-                m_text.render(m_renderTarget.Get(), s, m_textFormatBold.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 2.8f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
-                dbg("laps of fuel rem: %3.1f", estLaps);
-            }
-
-            // Remaining
-            if (remainingFuel >= 0)
-            {
-                swprintf(s, _countof(s), imperial ? L"%.1f gl" : L"%.1f lt", remainingFuel);
-                m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 5.1f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
-                dbg("amount of fuel rem: %3.1f", remainingFuel);
-            }
-
-            // Per Lap
-            if (avgPerLap > 0)
-            {
-                float val = avgPerLap;
-                if (imperial)
-                    val *= 0.264172f;
-                swprintf(s, _countof(s), imperial ? L"%.1f gl" : L"%.1f lt", val);
-                m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 6.9f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
-            }
-
-            // To Finish
-            if (remainingLaps >= 0 && perLapConsEst > 0)
-            {
-                float atFinish = std::max(0.0f, remainingFuel - remainingLaps * perLapConsEst);
-                float add = 0;
-
-                /*if (toFinish > ir_PitSvFuel.getFloat() || (toFinish > 0 && !ir_dpFuelFill.getFloat()))
-                {
-                    m_brush->SetColor(warnCol);
-                    add = toFinish;
-                }
-                else
-                    m_brush->SetColor(goodCol);*/
-
-                dbg("fuel at end: %3.1f", atFinish);
-                if (atFinish < 0)
-                {
-                    add = (remainingLaps * perLapConsEst) - remainingFuel;
-                    dbg("fuel to add at stop: %3.1f", add);
-                }
-
-                if (imperial)
-                    atFinish *= 0.264172f;
-                swprintf(s, _countof(s), imperial ? L"%3.1f gl" : L"%3.1f lt", atFinish);
-                m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 8.7f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
-                m_brush->SetColor(textCol);
-
-                // Add
-                if (add >= 0)
-                {
-                    if (ir_dpFuelFill.getFloat())
-                        m_brush->SetColor(serviceCol);
-
-                    swprintf(s, _countof(s), imperial ? L"%3.1f gl" : L"%3.1f lt", imperial ? add * 0.264172f : add);
-                    m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 10.5f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
-                    m_brush->SetColor(textCol);
-
-                    if (autoAdd)
-                        irsdk_broadcastMsg(irsdk_BroadcastPitCommand, irsdk_PitCommand_Fuel, add);
-                }
-            }
-        }
-
-        // Session
-        {
-            const double sessionTime = remainingSessionTime >= 0 ? remainingSessionTime : ir_SessionTime.getDouble();
-
-            const int    hours = int(sessionTime / 3600.0);
-            const int    mins = int(sessionTime / 60.0) % 60;
-            const int    secs = (int)fmod(sessionTime, 60.0);
-
-            if (hours)
-                swprintf(s, _countof(s), L"%d:%02d:%02d", hours, mins, secs);
-            else
-                swprintf(s, _countof(s), L"%02d:%02d", mins, secs);
-            m_text.render(m_renderTarget.Get(), s, m_textFormatSmall.Get(), m_boxSession.x0, m_boxSession.x1, m_boxSession.y0 + m_boxSession.h * 0.55f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-        }
-
-        // Incidents
-        {
-            const int inc = ir_PlayerCarMyIncidentCount.getInt();
-            swprintf(s, _countof(s), L"%dx", inc);
-            m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), m_boxIncs.x0, m_boxIncs.x1, m_boxIncs.y0 + m_boxIncs.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-        }
-
-        // Draw all the box outlines and titles
-        {
-            m_brush->SetColor(outlineCol);
-            m_renderTarget->DrawGeometry(m_boxPathGeometry.Get(), m_brush.Get());
-
-            m_text.render(m_renderTarget.Get(), L"Lap", m_textFormatSmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-            m_text.render(m_renderTarget.Get(), L"Fuel", m_textFormatSmall.Get(), m_boxFuel.x0, m_boxFuel.x1, m_boxFuel.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-            m_text.render(m_renderTarget.Get(), L"Session", m_textFormatSmall.Get(), m_boxSession.x0, m_boxSession.x1, m_boxSession.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-            m_text.render(m_renderTarget.Get(), L"Time", m_textFormatSmall.Get(), m_boxTime.x0, m_boxTime.x1, m_boxTime.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-            m_text.render(m_renderTarget.Get(), L"Incs", m_textFormatSmall.Get(), m_boxIncs.x0, m_boxIncs.x1, m_boxIncs.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-        }
+		m_text.render(m_renderTarget.Get(), L"Lap", m_textFormatSmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+		m_text.render(m_renderTarget.Get(), L"Fuel", m_textFormatSmall.Get(), m_boxFuel.x0, m_boxFuel.x1, m_boxFuel.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+		m_text.render(m_renderTarget.Get(), L"Session", m_textFormatSmall.Get(), m_boxSession.x0, m_boxSession.x1, m_boxSession.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+		m_text.render(m_renderTarget.Get(), L"Time", m_textFormatSmall.Get(), m_boxTime.x0, m_boxTime.x1, m_boxTime.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+		m_text.render(m_renderTarget.Get(), L"Incs", m_textFormatSmall.Get(), m_boxIncs.x0, m_boxIncs.x1, m_boxIncs.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+		m_text.render(m_renderTarget.Get(), L"TTemp", m_textFormatSmall.Get(), m_boxTrackTemp.x0, m_boxTrackTemp.x1, m_boxTrackTemp.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
         m_renderTarget->EndDraw();
     }
@@ -476,6 +584,7 @@ protected:
         return false;
     }
 
+    Box m_boxTrackTemp;
     Box m_boxIncs;
     Box m_boxTime;
     Box m_boxLaps;
@@ -504,4 +613,3 @@ protected:
     std::deque<float>   m_fuelUsedLastLaps;
     bool                m_isValidFuelLap = false;
 };
-
