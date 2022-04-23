@@ -42,11 +42,12 @@
     <ClInclude Include="OverlayDebug.h" />
     <ClInclude Include="OverlayDDU.h" />
     <ClInclude Include="OverlayCover.h" />
+    <ClInclude Include="OverlayHUD.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LICENSE" />
     <None Include="README.md" />
     <None Include=".gitignore" />
-    <None Include="config.json" />
+    <None Include="config.bak" />
   </ItemGroup>
 </Project>
