@@ -156,14 +156,22 @@ int main()
     overlays.push_back( new OverlayDebug() );
 #endif
 
-    ConnectionStatus  status   = ConnectionStatus::UNKNOWN;
-    bool              uiEdit   = false;
-    unsigned          frameCnt = 0;
+    ConnectionStatus    status          = ConnectionStatus::UNKNOWN;
+    bool                uiEdit          = false;
+    unsigned            frameCnt        = 0;
+    int                 carIdx          = 0;
+    int                 lap             = 0;
+
+	ConnectionStatus    prevStatus      = status;
+	bool                prevOnPitRoad   = false;
+    SessionType         prevSessionType = SessionType::UNKNOWN;
+    int                 prevLap         = 0;
 
     while( true )
     {
-        ConnectionStatus prevStatus       = status;
-        SessionType      prevSessionType  = ir_session.sessionType;
+        prevStatus = status;
+		prevSessionType = ir_session.sessionType;
+        prevLap = lap;
 
         // Refresh connection and session info
         status = ir_tick();
@@ -178,13 +186,50 @@ int main()
             handleConfigChange( overlays, status );
         }
 
+        dbg( "connection status: %s, session type: %s, session state: %d, pace mode: %d, on track: %d, flags: 0x%X", ConnectionStatusStr[(int)status], SessionTypeStr[(int)ir_session.sessionType], ir_SessionState.getInt(), ir_PaceMode.getInt(), (int)ir_IsOnTrackCar.getBool(), ir_SessionFlags.getInt() );
+
+        if (status == ConnectionStatus::CONNECTED || status == ConnectionStatus::DRIVING)
+        {
+            prevOnPitRoad = ir_OnPitRoad.getBool();
+		    carIdx = ir_session.driverCarIdx;
+            lap = ir_isPreStart() ? 0 : std::max(0, ir_CarIdxLap.getInt(carIdx));
+        }
+
         if( ir_session.sessionType != prevSessionType )
         {
+            dbg("Session Type Changed from (%d) to (%d)\n", prevSessionType, ir_session.sessionType);
+
             for( Overlay* o : overlays )
                 o->sessionChanged();
         }
 
-        dbg( "connection status: %s, session type: %s, session state: %d, pace mode: %d, on track: %d, flags: 0x%X", ConnectionStatusStr[(int)status], SessionTypeStr[(int)ir_session.sessionType], ir_SessionState.getInt(), ir_PaceMode.getInt(), (int)ir_IsOnTrackCar.getBool(), ir_SessionFlags.getInt() );
+        if (lap != prevLap)
+        {
+            dbg("lap count updated...");
+
+            for( Overlay* o : overlays )
+                o->lapChanged();
+        }
+
+        /*if ((ir_OnPitRoad.getBool() != prevOnPitRoad))
+        {
+            if (ir_OnPitRoad.getBool())
+            {
+                dbg("Entered Pit Road...");
+
+                for (Overlay* o : overlays)
+                    o->enteredPitRoad();
+            }
+            else
+            {
+				dbg("Exited Pit Road...");
+
+				for (Overlay* o : overlays)
+					o->leftPitRoad();
+            }
+
+            prevOnPitRoad = ir_OnPitRoad.getBool();
+        }*/
 
         // Update/render overlays
         {

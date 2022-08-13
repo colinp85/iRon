@@ -175,7 +175,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
-    <None Include="config.bak" />
     <None Include="LICENSE" />
     <None Include="README.md" />
   </ItemGroup>

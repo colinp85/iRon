@@ -275,6 +275,21 @@ void Overlay::sessionChanged()
     onSessionChanged();
 }
 
+void Overlay::lapChanged()
+{
+    onLapChanged();
+}
+
+void Overlay::enteredPitRoad()
+{
+    onEnteredPitRoad();
+}
+
+void Overlay::leftPitRoad()
+{
+    onLeftPitRoad();
+}
+
 void Overlay::update()
 {
     if( !m_enabled )
@@ -371,6 +386,9 @@ void Overlay::onDisable() {}
 void Overlay::onUpdate() {}
 void Overlay::onConfigChanged() {}
 void Overlay::onSessionChanged() {}
+void Overlay::onEnteredPitRoad() {}
+void Overlay::onLapChanged() {}
+void Overlay::onLeftPitRoad() {}
 float2 Overlay::getDefaultSize() { return float2(400,300); }
 bool Overlay::hasCustomBackground() { return false; }
 

@@ -54,6 +54,11 @@ class Overlay
         void            configChanged();
         void            sessionChanged();
 
+        void            lapChanged();
+
+        void            enteredPitRoad();
+        void            leftPitRoad();
+
         void            update();
 
         void            setWindowPosAndSize( int x, int y, int w, int h, bool callSetWindowPos=true );
@@ -66,6 +71,9 @@ class Overlay
         virtual void    onUpdate();
         virtual void    onConfigChanged();
         virtual void    onSessionChanged();
+        virtual void    onLapChanged();
+        virtual void    onEnteredPitRoad();
+        virtual void    onLeftPitRoad();
         virtual float2  getDefaultSize();
         virtual bool    hasCustomBackground();
 
