@@ -125,32 +125,16 @@ int main()
     // Register global hotkeys
     registerHotkeys();
 
+    printf("\n====================================================================================\n\n");
+    printf("Fuel Config:\n");
+    printf("    Auto Refuel:\t\t%s\n", g_cfg.getBool("OverlayHUD", "fuel_auto_refuel", "") ? "true": "false");
+    printf("    All Laps Count:\t\t%s\n", g_cfg.getBool("OverlayHUD", "fuel_all_laps_count", "") ? "true": "false");
+    printf("    Laps to Average:\t\t%.0f\n", g_cfg.getFloat("OverlayHUD", "fuel_estimate_avg_green_laps", 0.0));
+    printf("    Additional Laps:\t\t%.01f\n", g_cfg.getFloat("OverlayHUD", "fuel_additional_fuel", 0.0));
     printf("\n====================================================================================\n");
-    printf("Welcome to iRon! This app provides a few simple overlays for iRacing.\n\n");
-    printf("NOTE: Most overlays are only active when iRacing is running and the car is on track.\n\n");
-    printf("Current hotkeys:\n");
-    printf("    Move and resize overlays:     %s\n", g_cfg.getString("General","ui_edit_hotkey","").c_str() );
-    printf("    Toggle standings overlay:     %s\n", g_cfg.getString("OverlayStandings","toggle_hotkey","").c_str() );
-    printf("    Toggle DDU overlay:           %s\n", g_cfg.getString("OverlayDDU","toggle_hotkey","").c_str() );
-    printf("    Toggle inputs overlay:        %s\n", g_cfg.getString("OverlayInputs","toggle_hotkey","").c_str() );
-    printf("    Toggle relative overlay:      %s\n", g_cfg.getString("OverlayRelative","toggle_hotkey","").c_str() );
-    printf("    Toggle cover overlay:         %s\n", g_cfg.getString("OverlayCover","toggle_hotkey","").c_str() );
-    printf("    Toggle HUD overlay:           %s\n", g_cfg.getString("OverlayHUD", "toggle_hotkey", "").c_str());
-    printf("\niRon will generate a file called \'config.json\' in its current directory. This file\n"\
-           "stores your settings. You can edit the file at any time, even while iRon is running,\n"\
-           "to customize your overlays and hotkeys.\n\n");
-    printf("To exit iRon, simply close this console window.\n\n");
-    printf("For the latest version or to submit bug reports, go to:\n\n        https://github.com/lespalt/iRon\n\n");
-    printf("\nHappy Racing!\n");
-    printf("====================================================================================\n\n");
 
     // Create overlays
     std::vector<Overlay*> overlays;
-    overlays.push_back( new OverlayCover() );
-    overlays.push_back( new OverlayRelative() );
-    overlays.push_back( new OverlayInputs() );
-    overlays.push_back( new OverlayStandings() );
-    overlays.push_back( new OverlayDDU() );
     overlays.push_back( new OverlayHUD() );
 #ifdef _DEBUG
     overlays.push_back( new OverlayDebug() );
@@ -211,26 +195,6 @@ int main()
                 o->lapChanged();
         }
 
-        /*if ((ir_OnPitRoad.getBool() != prevOnPitRoad))
-        {
-            if (ir_OnPitRoad.getBool())
-            {
-                dbg("Entered Pit Road...");
-
-                for (Overlay* o : overlays)
-                    o->enteredPitRoad();
-            }
-            else
-            {
-				dbg("Exited Pit Road...");
-
-				for (Overlay* o : overlays)
-					o->leftPitRoad();
-            }
-
-            prevOnPitRoad = ir_OnPitRoad.getBool();
-        }*/
-
         // Update/render overlays
         {
             if( !g_cfg.getBool("General", "performance_mode_30hz", false) )
@@ -283,7 +247,7 @@ int main()
                 {
                     switch( msg.wParam )
                     {
-                    case (int)Hotkey::Standings:
+                    /*case (int)Hotkey::Standings:
                         g_cfg.setBool( "OverlayStandings", "enabled", !g_cfg.getBool("OverlayStandings","enabled",true) );
                         break;
                     case (int)Hotkey::DDU:
@@ -297,7 +261,7 @@ int main()
                         break;
                     case (int)Hotkey::Cover:
                         g_cfg.setBool( "OverlayCover", "enabled", !g_cfg.getBool("OverlayCover","enabled",true) );
-                        break;
+                        break;*/
                     case (int)Hotkey::HUD:
                         g_cfg.setBool("OverlayHUD", "enabled", !g_cfg.getBool("OverlayHUD", "enabled", true));
                         break;
