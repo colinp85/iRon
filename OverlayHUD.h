@@ -319,9 +319,8 @@ protected:
         const int  carIdx = ir_session.driverCarIdx;
 		const float fuelPct = ir_FuelLevelPct.getFloat();
 		const float additionalFuel = g_cfg.getFloat(m_name, "fuel_additional_fuel", 0.0f);
-		const float estimateFactor = g_cfg.getFloat(m_name, "fuel_estimate_factor", 1.05f);
 		const float remainingFuel = ir_FuelLevel.getFloat();
-        const int remainingLaps = getRemainingLaps();
+        const float remainingLaps = (float)getRemainingLaps();
 
         /* Progress Bar*/
 		const float x0 = m_boxFuel.x0 + xoff;
@@ -351,7 +350,7 @@ protected:
             avgPerLap = sumFuel / (float)m_fuelUsedLastLaps.size();
 
 		// Est Laps
-		const float perLapUsage = avgPerLap * estimateFactor;  // conservative estimate of per-lap use for further calculations
+        const float perLapUsage = avgPerLap;
 		if (perLapUsage > 0)
 		{
             swprintf(s, _countof(s), L"%3.1f", remainingFuel / perLapUsage);
@@ -380,7 +379,7 @@ protected:
 		// To Finish
 		if (remainingLaps >= 0 && perLapUsage > 0)
 		{
-			float atFinish = std::max(0.0f, remainingFuel - (float)remainingLaps * perLapUsage);
+			float atFinish = std::max(0.0f, remainingFuel - remainingLaps * perLapUsage);
             m_addFuel = 0;
 
 			if (atFinish <= 0)
