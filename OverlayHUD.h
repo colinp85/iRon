@@ -421,7 +421,8 @@ protected:
 		{
 			if (!m_fuelSet && m_addFuel > 0 && ir_session.sessionType != SessionType::QUALIFY)
 			{
-				irsdk_broadcastMsg(irsdk_BroadcastPitCommand, irsdk_PitCommand_Fuel, m_addFuel);
+				irsdk_broadcastMsg(irsdk_BroadcastPitCommand, irsdk_PitCommand_Fuel, (int)round(m_addFuel));
+                irsdk_broadcastMsg(irsdk_BroadcastPitCommand, irsdk_PitCommand_Fuel, 0);
 				m_fuelSet = true;
 			}
 		}
