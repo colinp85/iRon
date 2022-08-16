@@ -36,12 +36,7 @@ SOFTWARE.
 #include <windows.h>
 #include "iracing.h"
 #include "Config.h"
-#include "OverlayCover.h"
-#include "OverlayRelative.h"
-#include "OverlayInputs.h"
-#include "OverlayStandings.h"
 #include "OverlayDebug.h"
-#include "OverlayDDU.h"
 #include "OverlayHUD.h"
 
 enum class Hotkey
@@ -206,7 +201,7 @@ int main()
             else
             {
                 // To save perf, update half of the (enabled) overlays on even frames and the other half on odd, for ~30Hz overall
-                int cnt = 0;
+                unsigned int cnt = 0;
                 for( Overlay* o : overlays )
                 {
                     if( o->isEnabled() )

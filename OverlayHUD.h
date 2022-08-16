@@ -46,11 +46,8 @@ public:
         : Overlay("OverlayHUD")
     {}
 
-#ifdef _DEBUG
     virtual bool    canEnableWhileNotDriving() const { return true; }
     virtual bool    canEnableWhileDisconnected() const { return true; }
-#endif
-
 
 protected:
 
@@ -88,7 +85,6 @@ protected:
 
             const std::string font = g_cfg.getString(m_name, "font", "Arial");
             const float fontSize = g_cfg.getFloat(m_name, "font_size", DefaultFontSize);
-            const int fontWeight = g_cfg.getInt(m_name, "font_weight", 500);
             HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"en-us", &m_textFormat));
             m_textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
             m_textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
@@ -100,6 +96,10 @@ protected:
             HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize * 1.2f, L"en-us", &m_textFormatLarge));
             m_textFormatLarge->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
             m_textFormatLarge->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
+            HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize * 1.0f, L"en-us", &m_textFormatMed));
+            m_textFormatMed->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+            m_textFormatMed->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
 
             HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_LIGHT, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize * 0.7f, L"en-us", &m_textFormatSmall));
             m_textFormatSmall->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -140,32 +140,30 @@ protected:
             const float hgap = 0.02f;
             const float vgap = 0.05f;
 
-            const float w1 = 1.0f - (2 * hgap);
-            const float w2 = (1.0f - (3 * hgap)) / 2;
-            const float w3 = (1.0f - (4 * hgap)) / 3;
+            const float w2a = (1.0f - (3 * hgap)) / 8 * 2;
+            const float w4 = (1.0f - (4 * hgap)) / 8 * 4;
 
             const float maxh = 1.0f - vtop - vgap;
             const float h1 = maxh;
             const float h3 = ((maxh - (2 * vgap)) / 3);
             const float h2 = (h3 * 2) + vgap;
 
-            const bool   sessionIsTimeLimited = ir_SessionLapsTotal.getInt() == 32767 && ir_SessionTimeRemain.getDouble() < 48.0 * 3600.0;
-			m_boxFuel = makeBox(hgap, w3, vtop, h1, "Fuel");
+			m_boxFuel = makeBox(hgap, w4, vtop, h1, "Fuel");
 			addBoxFigure(geometrySink.Get(), m_boxFuel);
 
-			m_boxSession = makeBox(hgap * 2 + w3, w3, vtop, h3, "Session");
+			m_boxSession = makeBox(hgap * 2 + w4, w2a, vtop, h3, "Session");
 			addBoxFigure(geometrySink.Get(), m_boxSession);
 
-			m_boxLaps = makeBox(hgap * 2 + w3, w3, vtop + h3 + vgap, h2, "Lap");
+			m_boxLaps = makeBox(hgap * 2 + w4, w2a, vtop + h3 + vgap, h2, "Lap");
 			addBoxFigure(geometrySink.Get(), m_boxLaps);
 
-			m_boxTime = makeBox(hgap * 3 + 2 * w3, w3, vtop, h3, "TOD");
+			m_boxTime = makeBox(hgap * 3 + w4 + w2a, w2a, vtop, h3, "TOD");
 			addBoxFigure(geometrySink.Get(), m_boxTime);
 
-			m_boxIncs = makeBox(hgap * 3 + 2 * w3, w3, vtop + h3 + vgap, h3, "Incs");
+			m_boxIncs = makeBox(hgap * 3 + w4 + w2a, w2a, vtop + h3 + vgap, h3, "Incs");
 			addBoxFigure(geometrySink.Get(), m_boxIncs);
 
-			m_boxTrackTemp = makeBox(hgap * 3 + 2 * w3, w3, vtop + h3 + vgap + h3 + vgap, h3, "TTemp");
+			m_boxTrackTemp = makeBox(hgap * 3 + w4 + w2a, w2a, vtop + h3 + vgap + h3 + vgap, h3, "TTemp");
 			addBoxFigure(geometrySink.Get(), m_boxTrackTemp);
 
             geometrySink->Close();
@@ -200,7 +198,7 @@ protected:
 
         wchar_t s[256] = { 0 };
 		swprintf(s, _countof(s), isImperial() ? L"%3.1f gl" : L"%3.1f lt", add);
-		m_text.render(m_renderTarget.Get(), s, m_textFormatSmall.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 10.5f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+		m_text.render(m_renderTarget.Get(), s, m_textFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .65f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
     }
 
     virtual bool isImperial()
@@ -300,7 +298,6 @@ protected:
     virtual void setIncs()
 	{
         std::wstringstream wss;
-		const int inc = ir_PlayerCarMyIncidentCount.getInt();
         wss << ir_PlayerCarMyIncidentCount.getInt() << "x";
 		m_text.render(m_renderTarget.Get(), wss.str().c_str(), m_textFormat.Get(), m_boxIncs.x0, m_boxIncs.x1, m_boxIncs.y0 + m_boxIncs.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 	}
@@ -308,7 +305,6 @@ protected:
     virtual void setFuel()
     {
 		const float xoff = 7;
-        const float  fontSize = g_cfg.getFloat(m_name, "font_size", DefaultFontSize);
         const float4 textCol = g_cfg.getFloat4(m_name, "text_col", float4(1, 1, 1, 0.9f));
         const float4 goodCol = g_cfg.getFloat4(m_name, "good_col", float4(0, 0.8f, 0, 0.6f));
         const float4 warnCol = g_cfg.getFloat4(m_name, "warn_col", float4(1, 0.6f, 0, 1));
@@ -316,14 +312,12 @@ protected:
         const float fuelMax = ir_session.fuelMaxLtr;
         float sumFuel = 0;
         float avgPerLap = 0;
-        const int  carIdx = ir_session.driverCarIdx;
-		const float fuelPct = ir_FuelLevelPct.getFloat();
 		const float additionalFuel = g_cfg.getFloat(m_name, "fuel_additional_fuel", 0.0f);
 		const float remainingFuel = ir_FuelLevel.getFloat();
         const float remainingLaps = (float)getRemainingLaps();
 
         /* Progress Bar*/
-		const float x0 = m_boxFuel.x0 + xoff;
+		/*const float x0 = m_boxFuel.x0 + xoff;
 		const float x1 = m_boxFuel.x1 - xoff;
 		D2D1_RECT_F r = { x0, m_boxFuel.y0 + 12, x1, m_boxFuel.y0 + m_boxFuel.h * 0.11f };
 		m_brush->SetColor(float4(0.5f, 0.5f, 0.5f, 0.5f));
@@ -331,15 +325,19 @@ protected:
 
 		r = { x0, m_boxFuel.y0 + 12, x0 + fuelPct * (x1 - x0), m_boxFuel.y0 + m_boxFuel.h * 0.11f };
 		m_brush->SetColor(fuelPct < 0.1f ? warnCol : goodCol);
-		m_renderTarget->FillRectangle(&r, m_brush.Get());
+		m_renderTarget->FillRectangle(&r, m_brush.Get());*/
         /* End Progress Bar */
 
 		m_brush->SetColor(textCol);
-		m_text.render(m_renderTarget.Get(), L"Laps", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 2.8f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+		/*m_text.render(m_renderTarget.Get(), L"Laps", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 2.8f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 		m_text.render(m_renderTarget.Get(), L"Remain", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 5.1f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 		m_text.render(m_renderTarget.Get(), L"Avg", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 6.9f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 		m_text.render(m_renderTarget.Get(), L"Finish", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 8.7f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-		m_text.render(m_renderTarget.Get(), L"Refuel", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 10.5f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+		m_text.render(m_renderTarget.Get(), L"Refuel", m_textFormatSmall.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 10.5f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);*/
+		m_text.render(m_renderTarget.Get(), L"Rem:", m_textFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.15f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+		m_text.render(m_renderTarget.Get(), L"Avg:", m_textFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.4f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+		m_text.render(m_renderTarget.Get(), L"Add:", m_textFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.65f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+		m_text.render(m_renderTarget.Get(), L"Fin:", m_textFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.9f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 
         wchar_t s[512];
 
@@ -350,16 +348,16 @@ protected:
             avgPerLap = sumFuel / (float)m_fuelUsedLastLaps.size();
 
 		// Est Laps
-        const float perLapUsage = avgPerLap;
+        /*const float perLapUsage = avgPerLap;
 		if (perLapUsage > 0)
 		{
             swprintf(s, _countof(s), L"%3.1f", remainingFuel / perLapUsage);
 			m_text.render(m_renderTarget.Get(), s, m_textFormatSmall.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 2.8f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
-		}
+		}*/
 
 		// Remaining
 		swprintf(s, _countof(s), isImperial() ? L"%3.1f gl" : L"%3.1f lt", remainingFuel);
-		m_text.render(m_renderTarget.Get(), s, m_textFormatSmall.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 5.1f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+		m_text.render(m_renderTarget.Get(), s, m_textFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 0.15f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
 
 		// Per Lap
 		if (avgPerLap > 0)
@@ -373,20 +371,20 @@ protected:
             }
 
 			swprintf(s, _countof(s), isImperial() ? L"%3.1f [%3.1f] gl" : L"%3.1f [%3.1f] lt", avgVal, usedVal);
-			m_text.render(m_renderTarget.Get(), s, m_textFormatSmall.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 6.9f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+			m_text.render(m_renderTarget.Get(), s, m_textFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .4f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
 		}
 
 		// To Finish
-		if (remainingLaps >= 0 && perLapUsage > 0)
+		if (remainingLaps >= 0 && avgPerLap > 0)
 		{
-			float atFinish = std::max(0.0f, remainingFuel - remainingLaps * perLapUsage);
+			float atFinish = std::max(0.0f, remainingFuel - remainingLaps * avgPerLap);
             m_addFuel = 0;
 
 			if (atFinish <= 0)
 			{
-				m_addFuel = (remainingLaps * perLapUsage) - remainingFuel;
+				m_addFuel = (remainingLaps * avgPerLap) - remainingFuel;
                 if (additionalFuel > 0)
-                    m_addFuel += perLapUsage * additionalFuel;
+                    m_addFuel += avgPerLap * additionalFuel;
 			}
 
             if (isImperial())
@@ -395,7 +393,7 @@ protected:
 			swprintf(s, _countof(s), isImperial() ? L"%3.1f gl" : L"%3.1f lt", atFinish);
 
 			m_brush->SetColor(atFinish <= 0.0f ? warnCol : goodCol);
-			m_text.render(m_renderTarget.Get(), s, m_textFormatSmall.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 8.7f / 12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+			m_text.render(m_renderTarget.Get(), s, m_textFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .9f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
 			m_brush->SetColor(textCol);
 
 			// Add
@@ -598,6 +596,7 @@ protected:
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  m_textFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  m_textFormatBold;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  m_textFormatLarge;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>  m_textFormatMed;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  m_textFormatSmall;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  m_textFormatVerySmall;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  m_textFormatGear;
@@ -619,5 +618,5 @@ protected:
     float               m_addFuel = 0;
     float               m_lastLapUsed = 0;
 
-    bool                m_fuelSet;
+    bool                m_fuelSet = true;
 };

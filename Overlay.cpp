@@ -304,7 +304,7 @@ void Overlay::update()
     {
         m_renderTarget->BeginDraw();
         m_renderTarget->Clear( float4(0,0,0,0) );
-        D2D1_ROUNDED_RECT rr;
+        D2D1_ROUNDED_RECT rr = {};
         rr.rect = { 0.5f, 0.5f, w-0.5f, h-0.5f };
         rr.radiusX = cornerRadius;
         rr.radiusY = cornerRadius;
@@ -320,7 +320,7 @@ void Overlay::update()
     {
         // Draw highlight frame and resize corner indicators
         m_renderTarget->BeginDraw();
-        D2D1_ROUNDED_RECT rr;
+        D2D1_ROUNDED_RECT rr = {};
         rr.rect = { 0.5f, 0.5f, w-0.5f, h-0.5f };
         rr.radiusX = cornerRadius;
         rr.radiusY = cornerRadius;
