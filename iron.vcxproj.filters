@@ -33,15 +33,10 @@
     </ClInclude>
     <ClInclude Include="iracing.h" />
     <ClInclude Include="Overlay.h" />
-    <ClInclude Include="OverlayRelative.h" />
-    <ClInclude Include="OverlayInputs.h" />
     <ClInclude Include="Config.h" />
-    <ClInclude Include="picojson.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="OverlayStandings.h" />
     <ClInclude Include="OverlayDebug.h" />
-    <ClInclude Include="OverlayDDU.h" />
-    <ClInclude Include="OverlayCover.h" />
     <ClInclude Include="OverlayHUD.h" />
   </ItemGroup>
   <ItemGroup>

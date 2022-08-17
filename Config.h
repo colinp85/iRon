@@ -28,12 +28,16 @@ SOFTWARE.
 #include <atomic>
 #include <thread>
 #include <vector>
-#include "picojson.h"
+#include "nlohmann/json.hpp"
 #include "util.h"
+
+using nlohmann::json;
 
 class Config
 {
     public:
+
+        Config();
 
         bool                        load();
         bool                        save();
@@ -46,20 +50,24 @@ class Config
         float                       getFloat( const std::string& component, const std::string& key, float defaultVal );
         float4                      getFloat4( const std::string& component, const std::string& key, const float4& defaultVal );
         std::string                 getString( const std::string& component, const std::string& key, const std::string& defaultVal );
-        std::vector<std::string>    getStringVec( const std::string& component, const std::string& key, const std::vector<std::string>& defaultVal );
+        //std::vector<std::string>    getStringVec( const std::string& component, const std::string& key, const std::vector<std::string>& defaultVal );
 
         void                        setInt( const std::string& component, const std::string& key, int v );
         void                        setBool( const std::string& component, const std::string& key, bool v );
 
     private:
 
-        picojson::object&           getOrInsertComponent( const std::string& component, bool* existed=nullptr );
-        picojson::value&            getOrInsertValue( const std::string& component, const std::string& key, bool* existed=nullptr );
+        // TODO
+        // picojson::object&           getOrInsertComponent( const std::string& component, bool* existed=nullptr );
+        // picojson::value&            getOrInsertValue( const std::string& component, const std::string& key, bool* existed=nullptr );
 
-        picojson::object    m_pj;
-        std::atomic<bool>   m_hasChanged = false;
-        std::thread         m_configWatchThread;
-        std::string         m_filename = "config.json";
+        template <class V>
+        void                        setIfMissing(const std::string& component, const std::string& key, V& val);
+
+        json                mJsonData;
+        std::atomic<bool>   mHasChanged;
+        std::thread         mConfigWatchThread;
+        std::string         mFilename;
 };
 
 extern Config        g_cfg;

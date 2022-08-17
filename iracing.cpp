@@ -457,11 +457,11 @@ ConnectionStatus ir_tick()
             sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}LicColor:", carIdx );
             parseYamlStr( sessionYaml, path, car.licenseColStr );
             unsigned licColHex = 0;
-            sscanf( car.licenseColStr.c_str(), "0x%x", &licColHex );
-            car.licenseCol.r = float((licColHex >> 16) & 0xff) / 255.f;
-            car.licenseCol.g = float((licColHex >>  8) & 0xff) / 255.f;
-            car.licenseCol.b = float((licColHex >>  0) & 0xff) / 255.f;
-            car.licenseCol.a = 1;
+            sscanf(car.licenseColStr.c_str(), "0x%x", &licColHex) 
+			car.licenseCol.r = float((licColHex >> 16) & 0xff) / 255.f;
+			car.licenseCol.g = float((licColHex >> 8) & 0xff) / 255.f;
+			car.licenseCol.b = float((licColHex >> 0) & 0xff) / 255.f;
+			car.licenseCol.a = 1;
 
             sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}IRating:", carIdx );
             parseYamlInt( sessionYaml, path, &car.irating );
@@ -499,7 +499,6 @@ ConnectionStatus ir_tick()
         // Session info (may override qual results from above, but that's ok since hopefully they're the same!)
         for( int session=0; ; ++session )
         {
-            std::string sessionNameStr;
             sprintf( path, "SessionInfo:Sessions:SessionNum:{%d}SessionName:", session );
             if( !parseYamlStr( sessionYaml, path, sessionNameStr ) )
                 break;
@@ -567,7 +566,8 @@ ConnectionStatus ir_tick()
 
 void ir_handleConfigChange()
 {
-    std::vector<std::string> buddies = g_cfg.getStringVec( "General", "buddies", {} );
+    // TODO
+    /*std::vector<std::string> buddies = g_cfg.getStringVec("General", "buddies", {});
     std::vector<std::string> flagged = g_cfg.getStringVec( "General", "flagged", {} );
 
     for( int carIdx=0; carIdx<IR_MAX_CARS; ++carIdx )
@@ -585,7 +585,7 @@ void ir_handleConfigChange()
             if( name == car.userName )
                 car.isFlagged = 1;
         }
-    }
+    }*/
 }
 
 bool ir_isPreStart()
