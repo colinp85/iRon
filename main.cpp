@@ -62,26 +62,13 @@ static void registerHotkeys()
 
     UINT vk, mod;
 
-    if( parseHotkey( g_cfg.getString("General","ui_edit_hotkey","alt-j"),&mod,&vk) )
-        RegisterHotKey( NULL, (int)Hotkey::UiEdit, mod, vk );
-
-    if( parseHotkey( g_cfg.getString("OverlayStandings","toggle_hotkey","ctrl-space"),&mod,&vk) )
-        RegisterHotKey( NULL, (int)Hotkey::Standings, mod, vk );
-
-    if( parseHotkey( g_cfg.getString("OverlayDDU","toggle_hotkey","ctrl-1"),&mod,&vk) )
-        RegisterHotKey( NULL, (int)Hotkey::DDU, mod, vk );
-
-    if( parseHotkey( g_cfg.getString("OverlayInputs","toggle_hotkey","ctrl-2"),&mod,&vk) )
-        RegisterHotKey( NULL, (int)Hotkey::Inputs, mod, vk );
-
-    if( parseHotkey( g_cfg.getString("OverlayRelative","toggle_hotkey","ctrl-3"),&mod,&vk) )
-        RegisterHotKey( NULL, (int)Hotkey::Relative, mod, vk );
-
-    if( parseHotkey( g_cfg.getString("OverlayCover","toggle_hotkey","ctrl-4"),&mod,&vk) )
-        RegisterHotKey( NULL, (int)Hotkey::Cover, mod, vk );
+    if (parseHotkey(g_cfg.getString("General", "ui_edit_hotkey", "alt-j"), &mod, &vk))
+        RegisterHotKey(NULL, (int)Hotkey::UiEdit, mod, vk);
 
     if (parseHotkey(g_cfg.getString("OverlayHUD", "toggle_hotkey", "ctrl-5"), &mod, &vk))
         RegisterHotKey(NULL, (int)Hotkey::HUD, mod, vk);
+
+    // TODO log the application hotkeys
 }
 
 static void handleConfigChange( std::vector<Overlay*> overlays, ConnectionStatus status )
@@ -183,27 +170,25 @@ int main()
         }
 
         // Update/render overlays
-        {
-            if( !g_cfg.getBool("General", "performance_mode_30hz", false) )
-            {
-                // Update everything every frame, roughly every 16ms (~60Hz)
-                for( Overlay* o : overlays )
-                    o->update();
-            }
-            else
-            {
-                // To save perf, update half of the (enabled) overlays on even frames and the other half on odd, for ~30Hz overall
-                unsigned int cnt = 0;
-                for( Overlay* o : overlays )
-                {
-                    if( o->isEnabled() )
-                        cnt++;
+		if( !g_cfg.getBool("General", "performance_mode_30hz", false) )
+		{
+			// Update everything every frame, roughly every 16ms (~60Hz)
+			for( Overlay* o : overlays )
+				o->update();
+		}
+		else
+		{
+			// To save perf, update half of the (enabled) overlays on even frames and the other half on odd, for ~30Hz overall
+			unsigned int cnt = 0;
+			for( Overlay* o : overlays )
+			{
+				if( o->isEnabled() )
+					cnt++;
 
-                    if( (cnt & 1) == (frameCnt & 1) )
-                        o->update();
-                }
-            }
-        }
+				if( (cnt & 1) == (frameCnt & 1) )
+					o->update();
+			}
+		}
 
         // Watch for config change signal
         if( g_cfg.hasChanged() )
@@ -234,21 +219,6 @@ int main()
                 {
                     switch( msg.wParam )
                     {
-                    /*case (int)Hotkey::Standings:
-                        g_cfg.setBool( "OverlayStandings", "enabled", !g_cfg.getBool("OverlayStandings","enabled",true) );
-                        break;
-                    case (int)Hotkey::DDU:
-                        g_cfg.setBool( "OverlayDDU", "enabled", !g_cfg.getBool("OverlayDDU","enabled",false) );
-                        break;
-                    case (int)Hotkey::Inputs:
-                        g_cfg.setBool( "OverlayInputs", "enabled", !g_cfg.getBool("OverlayInputs","enabled",true) );
-                        break;
-                    case (int)Hotkey::Relative:
-                        g_cfg.setBool( "OverlayRelative", "enabled", !g_cfg.getBool("OverlayRelative","enabled",true) );
-                        break;
-                    case (int)Hotkey::Cover:
-                        g_cfg.setBool( "OverlayCover", "enabled", !g_cfg.getBool("OverlayCover","enabled",true) );
-                        break;*/
                     case (int)Hotkey::HUD:
                         g_cfg.setBool("OverlayHUD", "enabled", !g_cfg.getBool("OverlayHUD", "enabled", true));
                         break;
