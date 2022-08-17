@@ -182,14 +182,6 @@ int main()
                 o->sessionChanged();
         }
 
-        if (lap != prevLap)
-        {
-            dbg("lap count updated...");
-
-            for( Overlay* o : overlays )
-                o->lapChanged();
-        }
-
         // Update/render overlays
         {
             if( !g_cfg.getBool("General", "performance_mode_30hz", false) )

@@ -54,8 +54,6 @@ class Overlay
         void            configChanged();
         void            sessionChanged();
 
-        void            lapChanged();
-
         void            enteredPitRoad();
         void            leftPitRoad();
 
@@ -85,6 +83,8 @@ class Overlay
         int             m_ypos = 0;
         int             m_width = 0;
         int             m_height = 0;
+        int             mPrevLap = 0;
+        bool            mPrevOnPitRoad = true;
 
         Microsoft::WRL::ComPtr<ID3D11Device>            m_d3dDevice;
         Microsoft::WRL::ComPtr<IDXGISwapChain1>         m_swapChain;

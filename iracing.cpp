@@ -457,7 +457,7 @@ ConnectionStatus ir_tick()
             sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}LicColor:", carIdx );
             parseYamlStr( sessionYaml, path, car.licenseColStr );
             unsigned licColHex = 0;
-            sscanf(car.licenseColStr.c_str(), "0x%x", &licColHex) 
+            sscanf(car.licenseColStr.c_str(), "0x%x", &licColHex);
 			car.licenseCol.r = float((licColHex >> 16) & 0xff) / 255.f;
 			car.licenseCol.g = float((licColHex >> 8) & 0xff) / 255.f;
 			car.licenseCol.b = float((licColHex >> 0) & 0xff) / 255.f;

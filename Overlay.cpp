@@ -27,6 +27,7 @@ SOFTWARE.
 #include <windowsx.h>
 #include "Overlay.h"
 #include "Config.h"
+#include "iracing.h"
 
 using namespace Microsoft::WRL;
 
@@ -275,11 +276,6 @@ void Overlay::sessionChanged()
     onSessionChanged();
 }
 
-void Overlay::lapChanged()
-{
-    onLapChanged();
-}
-
 void Overlay::enteredPitRoad()
 {
     onEnteredPitRoad();
@@ -312,6 +308,24 @@ void Overlay::update()
         m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
         m_renderTarget->EndDraw();
     }
+
+	const int  carIdx = ir_session.driverCarIdx;
+	const int  currentLap = ir_isPreStart() ? 0 : std::max(0, ir_CarIdxLap.getInt(carIdx));
+	const bool lapCountUpdated = currentLap != mPrevLap;
+
+    bool onpitroad = ir_OnPitRoad.getBool();
+    if (onpitroad != mPrevOnPitRoad)
+    {
+        if (onpitroad)
+            onEnteredPitRoad();
+        else
+            onLeftPitRoad();
+        mPrevOnPitRoad = onpitroad;
+    }
+
+	mPrevLap = currentLap;
+	if (lapCountUpdated)
+		onLapChanged();
 
     // Overlay-specific logic and rendering
     onUpdate();

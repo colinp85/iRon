@@ -432,9 +432,9 @@ protected:
         m_fuelSet = false;
     }
 
-    virtual void onLap()
+    virtual void onLapChanged()
     {
-        printf("onLap()\n");
+        printf("onLapChanged()\n");
         const int  carIdx = ir_session.driverCarIdx;
 		const bool allLapsCount = g_cfg.getBool(m_name, "fuel_all_laps_count", true);
 		const int numLapsToAvg = g_cfg.getInt(m_name, "fuel_estimate_avg_green_laps", 5);
@@ -470,19 +470,19 @@ protected:
         const float4 goodCol = g_cfg.getFloat4(m_name, "good_col", float4(0, 0.8f, 0, 0.6f));
         const float4 badCol = g_cfg.getFloat4(m_name, "bad_col", float4(0.8f, 0.1f, 0.1f, 0.6f));
 
-        const int  carIdx = ir_session.driverCarIdx;
-        const DWORD tickCount = GetTickCount();
-        const int    currentLap = ir_isPreStart() ? 0 : std::max(0, ir_CarIdxLap.getInt(carIdx));
-        const bool   lapCountUpdated = currentLap != m_prevCurrentLap;
+        //const int  carIdx = ir_session.driverCarIdx;
+        //const DWORD tickCount = GetTickCount();
+        //const int    currentLap = ir_isPreStart() ? 0 : std::max(0, ir_CarIdxLap.getInt(carIdx));
+        /*const bool   lapCountUpdated = currentLap != m_prevCurrentLap;
 
         m_prevCurrentLap = currentLap;
         if (lapCountUpdated)
         {
             onLap();
             m_lastLapChangeTickCount = tickCount;
-        }
+        }*/
 
-        bool onpitroad = ir_OnPitRoad.getBool();
+        /*bool onpitroad = ir_OnPitRoad.getBool();
         if (onpitroad != m_prevOnPitRoad)
         {
             if (onpitroad)
@@ -490,7 +490,7 @@ protected:
             else
                 onLeftPitRoad();
 			m_prevOnPitRoad = onpitroad;
-        }
+        }*/
 
         m_renderTarget->BeginDraw();
         m_brush->SetColor(textCol);
@@ -607,14 +607,13 @@ protected:
     TextCache           m_text;
 
     int                 m_prevCurrentLap = 0;
-    DWORD               m_lastLapChangeTickCount = 0;
+    //DWORD               m_lastLapChangeTickCount = 0;
 
     float               m_prevBestLapTime = 0;
 
     float               m_lapStartRemainingFuel = 0;
     std::deque<float>   m_fuelUsedLastLaps;
     bool                m_isValidFuelLap = false;
-    bool                m_prevOnPitRoad = true;
     float               m_addFuel = 0;
     float               m_lastLapUsed = 0;
 
