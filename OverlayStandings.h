@@ -101,6 +101,14 @@ protected:
         // Init array
         float fastestLapTime = FLT_MAX;
         int fastestLapIdx = -1;
+
+        std::string userName;
+        std::string driverClass = g_cfg.getString("OverlayStandings", "driver_class", "");
+
+        bool classFilter = true;
+        if (driverClass.empty())
+            classFilter = false;
+
         for( int i=0; i<IR_MAX_CARS; ++i )
         {
             const Car& car = ir_session.cars[i];
@@ -121,7 +129,14 @@ protected:
             if( ir_session.sessionType==SessionType::RACE && ir_SessionState.getInt()<=irsdk_StateWarmup || ir_session.sessionType==SessionType::QUALIFY && ci.best<=0 )
                 ci.best = car.qualTime;
 
-            carInfo.push_back( ci );
+            if (classFilter)
+            {
+                userName.assign(car.userName);
+                if (userName.find(driverClass) != std::string::npos)
+					carInfo.push_back( ci );
+            }
+            else
+				carInfo.push_back( ci );
 
             if( ci.best > 0 && ci.best < fastestLapTime ) {
                 fastestLapTime = ci.best;
@@ -229,7 +244,7 @@ protected:
             // Alternating line backgrounds
             if( i & 1 && alternateLineBgCol.a > 0 )
             {
-                D2D1_RECT_F r = { 0, y-lineHeight/2, (float)m_width,  y+lineHeight/2 };
+                r = { 0, y-lineHeight/2, (float)m_width,  y+lineHeight/2 };
                 m_brush->SetColor( alternateLineBgCol );
                 m_renderTarget->FillRectangle( &r, m_brush.Get() );
             }
@@ -382,6 +397,11 @@ protected:
     }
 
     virtual bool canEnableWhileNotDriving() const
+    {
+        return true;
+    }
+
+    virtual bool canEnableWhileDisconnected() const
     {
         return true;
     }

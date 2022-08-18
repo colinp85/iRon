@@ -38,6 +38,7 @@ SOFTWARE.
 #include "Config.h"
 #include "OverlayDebug.h"
 #include "OverlayHUD.h"
+#include "OverlayStandings.h"
 
 enum class Hotkey
 {
@@ -64,6 +65,9 @@ static void registerHotkeys()
 
     if (parseHotkey(g_cfg.getString("General", "ui_edit_hotkey", "alt-j"), &mod, &vk))
         RegisterHotKey(NULL, (int)Hotkey::UiEdit, mod, vk);
+
+    if (parseHotkey(g_cfg.getString("OverlayStandings", "toggle_hotkey", "ctrl-4"), &mod, &vk))
+        RegisterHotKey(NULL, (int)Hotkey::Standings, mod, vk);
 
     if (parseHotkey(g_cfg.getString("OverlayHUD", "toggle_hotkey", "ctrl-5"), &mod, &vk))
         RegisterHotKey(NULL, (int)Hotkey::HUD, mod, vk);
@@ -118,6 +122,7 @@ int main()
     // Create overlays
     std::vector<Overlay*> overlays;
     overlays.push_back( new OverlayHUD() );
+    overlays.push_back( new OverlayStandings() );
 #ifdef _DEBUG
     overlays.push_back( new OverlayDebug() );
 #endif
@@ -125,19 +130,14 @@ int main()
     ConnectionStatus    status          = ConnectionStatus::UNKNOWN;
     bool                uiEdit          = false;
     unsigned            frameCnt        = 0;
-    int                 carIdx          = 0;
-    int                 lap             = 0;
 
 	ConnectionStatus    prevStatus      = status;
-	bool                prevOnPitRoad   = false;
     SessionType         prevSessionType = SessionType::UNKNOWN;
-    int                 prevLap         = 0;
 
     while( true )
     {
         prevStatus = status;
 		prevSessionType = ir_session.sessionType;
-        prevLap = lap;
 
         // Refresh connection and session info
         status = ir_tick();
@@ -153,13 +153,6 @@ int main()
         }
 
         dbg( "connection status: %s, session type: %s, session state: %d, pace mode: %d, on track: %d, flags: 0x%X", ConnectionStatusStr[(int)status], SessionTypeStr[(int)ir_session.sessionType], ir_SessionState.getInt(), ir_PaceMode.getInt(), (int)ir_IsOnTrackCar.getBool(), ir_SessionFlags.getInt() );
-
-        if (status == ConnectionStatus::CONNECTED || status == ConnectionStatus::DRIVING)
-        {
-            prevOnPitRoad = ir_OnPitRoad.getBool();
-		    carIdx = ir_session.driverCarIdx;
-            lap = ir_isPreStart() ? 0 : std::max(0, ir_CarIdxLap.getInt(carIdx));
-        }
 
         if( ir_session.sessionType != prevSessionType )
         {
@@ -219,9 +212,12 @@ int main()
                 {
                     switch( msg.wParam )
                     {
-                    case (int)Hotkey::HUD:
-                        g_cfg.setBool("OverlayHUD", "enabled", !g_cfg.getBool("OverlayHUD", "enabled", true));
-                        break;
+					case (int)Hotkey::HUD:
+						g_cfg.setBool("OverlayHUD", "enabled", !g_cfg.getBool("OverlayHUD", "enabled", true));
+						break;
+					case (int)Hotkey::Standings:
+						g_cfg.setBool("OverlayStandings", "enabled", !g_cfg.getBool("OverlayStandings", "enabled", true));
+						break;
                     }
                     
                     g_cfg.save();

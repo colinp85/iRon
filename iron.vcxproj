@@ -236,6 +236,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Header.h" />
     <ClInclude Include="OverlayDebug.h" />
     <ClInclude Include="OverlayHUD.h" />
     <ClInclude Include="iracing.h" />
