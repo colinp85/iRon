@@ -25,9 +25,12 @@ SOFTWARE.
 #pragma once
 
 #include <assert.h>
+#include <cmath>
 #include "Overlay.h"
 #include "Config.h"
 #include "OverlayDebug.h"
+
+const float EPSILON = 0.0000001;
 
 class OverlayStandings : public Overlay
 {
@@ -132,7 +135,7 @@ protected:
             if (classFilter)
             {
                 userName.assign(car.userName);
-                if (userName.find(driverClass) != std::string::npos)
+                if (userName.rfind(driverClass, 0) == 0)
 					carInfo.push_back( ci );
             }
             else
@@ -234,6 +237,7 @@ protected:
         m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING );
 
         // Content
+        float gap = 0.0f;
         for( int i=0; i<(int)carInfo.size(); ++i )
         {
             y = 2*yoff + lineHeight/2 + (i+1)*lineHeight;
@@ -367,7 +371,17 @@ protected:
                 if( ci.lapDelta < 0 )
                     swprintf( s, _countof(s), L"%d L", ci.lapDelta );
                 else
-                    swprintf( s, _countof(s), L"%.03f", ci.delta );
+                {
+                    if (classFilter)
+                    {
+                        if (fabs(gap - 0.0f) < EPSILON)
+                            gap = ci.delta;
+
+						swprintf(s, _countof(s), L"%.03f", ci.delta - gap);
+                    }
+                    else
+						swprintf(s, _countof(s), L"%.03f", ci.delta);
+                }
                 m_brush->SetColor( otherCarCol );
                 m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING );
             }
@@ -387,10 +401,10 @@ protected:
 
             m_brush->SetColor(float4(1,1,1,0.4f));
             m_renderTarget->DrawLine( float2(0,ybottom),float2((float)m_width,ybottom),m_brush.Get() );
-            swprintf( s, _countof(s), L"SoF: %d      Track Temp: %.1f°%c      Air Temp: %.1f°%c      Setup: %s      Subsession: %d", ir_session.sof, trackTemp, tempUnit, airTemp, tempUnit, ir_session.isFixedSetup?L"fixed":L"open", ir_session.subsessionId );
+            swprintf(s, _countof(s), L"        SoF: %d", ir_session.sof);
             y = m_height - (m_height-ybottom)/2;
             m_brush->SetColor( headerCol );
-            m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff, (float)m_width-2*xoff, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
+            m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff, (float)m_width-2*xoff, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
         }
 
         m_renderTarget->EndDraw();
