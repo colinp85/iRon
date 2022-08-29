@@ -345,7 +345,7 @@ protected:
                 usedVal *= 0.264172f;
             }
 
-			swprintf(s, _countof(s), isImperial() ? L"%3.1f [%3.1f] gl" : L"%3.1f [%3.1f] lt", avgVal, usedVal);
+			swprintf(s, _countof(s), isImperial() ? L"%5.2f [%5.2f] gl" : L"%5.2f [%5.2f] lt", avgVal, usedVal);
 			mText.render(m_renderTarget.Get(), s, mTextFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .4f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
 		}
 
