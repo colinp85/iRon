@@ -30,7 +30,14 @@ SOFTWARE.
 #include "Config.h"
 #include "OverlayDebug.h"
 
-const float EPSILON = 0.0000001;
+const double EPSILON = 0.0000001;
+
+struct StandingsCfg {
+    int leadCars = 3;
+    int carsAhead = 3;
+    int carsBehind = 3;
+    int maxRows = 12;
+};
 
 class OverlayStandings : public Overlay
 {
@@ -63,6 +70,12 @@ protected:
         const std::string font = g_cfg.getString( m_name, "font", "Microsoft YaHei UI" );
         const float fontSize = g_cfg.getFloat( m_name, "font_size", DefaultFontSize );
         const int fontWeight = g_cfg.getInt( m_name, "font_weight", 500 );
+
+        mCfg.leadCars = g_cfg.getInt(m_name, "lead_cars", 3);
+        mCfg.carsAhead = g_cfg.getInt(m_name, "cars_ahead", 3);
+        mCfg.carsBehind = g_cfg.getInt(m_name, "cars_behind", 3);
+        mCfg.maxRows = g_cfg.getInt(m_name, "max_rows", 12);
+
         HRCHECK(m_dwriteFactory->CreateTextFormat( toWide(font).c_str(), NULL, (DWRITE_FONT_WEIGHT)fontWeight, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"en-us", &m_textFormat ));
         m_textFormat->SetParagraphAlignment( DWRITE_PARAGRAPH_ALIGNMENT_CENTER );
         m_textFormat->SetWordWrapping( DWRITE_WORD_WRAPPING_NO_WRAP );
@@ -159,10 +172,16 @@ protected:
             } );
 
         // Compute lap deltas to leader
+        int positionSelf = 0;
         for( int i=0; i<(int)carInfo.size(); ++i )
         {
             const CarInfo& ciLeader = carInfo[0];
             CarInfo&       ci       = carInfo[i];
+            const Car&      car = ir_session.cars[ci.carIdx];
+
+            if (car.isSelf)
+                positionSelf = i;
+
             ci.lapDelta = ir_getLapDeltaToLeader( ci.carIdx, ciLeader.carIdx );
         }
 
@@ -238,20 +257,52 @@ protected:
 
         // Content
         float gap = 0.0f;
+        int line = 0;
+
+        // TODO Config Options
+        // TODO set self position tolerance
         for( int i=0; i<(int)carInfo.size(); ++i )
         {
-            y = 2*yoff + lineHeight/2 + (i+1)*lineHeight;
+			// current user is in session and placed higher than 10
+            if (positionSelf > 9)
+            {
+                if (i >= mCfg.leadCars)
+                {
+                    if (i == mCfg.leadCars)
+                    {
+                        // move line draw forward one, skip line
+                        line += 1;
+                        continue;
+                    }
+                    else if (i < positionSelf - mCfg.carsAhead || i > positionSelf + mCfg.carsBehind)
+                    {
+                        // don't draw
+                        continue;
+                    }
+                }
+                if (i > 0)
+					line += 1;
+            }
+            else
+                line = i;
+
+            if (line >= mCfg.maxRows)
+                break;
+
+
+            y = 2*yoff + lineHeight/2 + (line+1)*lineHeight;
 
             if( y+lineHeight/2 > ybottom )
                 break;
 
             // Alternating line backgrounds
-            if( i & 1 && alternateLineBgCol.a > 0 )
+            if( line & 1 && alternateLineBgCol.a > 0 )
             {
                 r = { 0, y-lineHeight/2, (float)m_width,  y+lineHeight/2 };
                 m_brush->SetColor( alternateLineBgCol );
                 m_renderTarget->FillRectangle( &r, m_brush.Get() );
             }
+
 
             const CarInfo&  ci  = carInfo[i];
             const Car&      car = ir_session.cars[ci.carIdx];
@@ -427,4 +478,5 @@ protected:
 
     ColumnLayout m_columns;
     TextCache    m_text;
+    StandingsCfg mCfg;
 };
