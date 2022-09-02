@@ -244,7 +244,9 @@
     <ClInclude Include="irsdk\irsdk_defines.h" />
     <ClInclude Include="irsdk\yaml_parser.h" />
     <ClInclude Include="Overlay.h" />
+    <ClInclude Include="OverlayInputTesting.h" />
     <ClInclude Include="OverlayStandings.h" />
+    <ClInclude Include="ui_utils.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>

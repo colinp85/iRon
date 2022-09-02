@@ -39,6 +39,8 @@
     <ClInclude Include="OverlayDebug.h" />
     <ClInclude Include="OverlayHUD.h" />
     <ClInclude Include="Header.h" />
+    <ClInclude Include="ui_utils.h" />
+    <ClInclude Include="OverlayInputTesting.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LICENSE" />

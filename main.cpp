@@ -39,6 +39,7 @@ SOFTWARE.
 #include "OverlayDebug.h"
 #include "OverlayHUD.h"
 #include "OverlayStandings.h"
+#include "OverlayInputTesting.h"
 
 enum class Hotkey
 {
@@ -46,7 +47,7 @@ enum class Hotkey
     Standings,
     DDU,
     HUD,
-    Inputs,
+    InputTesting,
     Relative,
     Cover
 };
@@ -55,11 +56,8 @@ static void registerHotkeys()
 {
     UnregisterHotKey( NULL, (int)Hotkey::UiEdit );
     UnregisterHotKey( NULL, (int)Hotkey::Standings );
-    UnregisterHotKey( NULL, (int)Hotkey::DDU );
     UnregisterHotKey( NULL, (int)Hotkey::HUD);
-    UnregisterHotKey( NULL, (int)Hotkey::Inputs );
-    UnregisterHotKey( NULL, (int)Hotkey::Relative );
-    UnregisterHotKey( NULL, (int)Hotkey::Cover );
+    UnregisterHotKey( NULL, (int)Hotkey::InputTesting );
 
     UINT vk, mod;
 
@@ -68,6 +66,9 @@ static void registerHotkeys()
 
     if (parseHotkey(g_cfg.getString("OverlayStandings", "toggle_hotkey", "ctrl-4"), &mod, &vk))
         RegisterHotKey(NULL, (int)Hotkey::Standings, mod, vk);
+
+    if (parseHotkey(g_cfg.getString("OverlayInputTesting", "toggle_hotkey", "ctrl-3"), &mod, &vk))
+        RegisterHotKey(NULL, (int)Hotkey::InputTesting, mod, vk);
 
     if (parseHotkey(g_cfg.getString("OverlayHUD", "toggle_hotkey", "ctrl-5"), &mod, &vk))
         RegisterHotKey(NULL, (int)Hotkey::HUD, mod, vk);
@@ -123,6 +124,7 @@ int main()
     std::vector<Overlay*> overlays;
     overlays.push_back( new OverlayHUD() );
     overlays.push_back( new OverlayStandings() );
+    overlays.push_back( new OverlayInputTesting() );
 #ifdef _DEBUG
     overlays.push_back( new OverlayDebug() );
 #endif
@@ -217,6 +219,9 @@ int main()
 						break;
 					case (int)Hotkey::Standings:
 						g_cfg.setBool("OverlayStandings", "enabled", !g_cfg.getBool("OverlayStandings", "enabled", true));
+						break;
+					case (int)Hotkey::InputTesting:
+						g_cfg.setBool("OverlayInputTesting", "enabled", !g_cfg.getBool("OverlayInputTesting", "enabled", true));
 						break;
                     }
                     
