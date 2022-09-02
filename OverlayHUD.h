@@ -34,6 +34,7 @@ SOFTWARE.
 #include "iracing.h"
 #include "Config.h"
 #include "OverlayDebug.h"
+#include "ui_utils.h"
 
 
 class OverlayHUD : public Overlay
@@ -136,34 +137,46 @@ protected:
             m_d2dFactory->CreatePathGeometry(&m_boxPathGeometry);
             m_boxPathGeometry->Open(&geometrySink);
 
-            const float vtop = 0.05f;
             const float hgap = 0.02f;
             const float vgap = 0.05f;
 
-            const float w2a = (1.0f - (3 * hgap)) / 8 * 2;
-            const float w4 = (1.0f - (4 * hgap)) / 8 * 4;
+            float w = 0.0f;
+            float h = 0.0f;
 
-            const float maxh = 1.0f - vtop - vgap;
-            const float h1 = maxh;
-            const float h3 = ((maxh - (2 * vgap)) / 3);
-            const float h2 = (h3 * 2) + vgap;
+            float xoffset = 0.0f;
+            float yoffset = 0.0f;
 
-			m_boxFuel = makeBox(hgap, w4, vtop, h1, "Fuel");
+            int cols = 3;
+            int hdivs = 8;
+            int vdivs = 3;
+
+            getDimensions(0, cols, 4, hdivs, 0, hgap, w, xoffset);
+            getDimensions(0, 1, 3, vdivs, 0, vgap, h, yoffset);
+			m_boxFuel = makeBox(xoffset, w, yoffset, h, "Fuel");
 			addBoxFigure(geometrySink.Get(), m_boxFuel);
 
-			m_boxSession = makeBox(hgap * 2 + w4, w2a, vtop, h3, "Session");
+            getDimensions(1, cols, 2, hdivs, 4, hgap, w, xoffset);
+            getDimensions(0, 2, 1, vdivs, 0, vgap, h, yoffset);
+			m_boxSession = makeBox(xoffset, w, yoffset, h, "Session");
 			addBoxFigure(geometrySink.Get(), m_boxSession);
 
-			m_boxLaps = makeBox(hgap * 2 + w4, w2a, vtop + h3 + vgap, h2, "Lap");
+
+            getDimensions(1, 2, 2, vdivs, 1, vgap, h, yoffset);
+			m_boxLaps = makeBox(xoffset, w, yoffset, h, "Lap");
 			addBoxFigure(geometrySink.Get(), m_boxLaps);
 
-			m_boxTime = makeBox(hgap * 3 + w4 + w2a, w2a, vtop, h3, "TOD");
+
+            getDimensions(2, cols, 2, hdivs, 6, hgap, h, xoffset);
+            getDimensions(0, 3, 1, vdivs, 0, vgap, h, yoffset);
+			m_boxTime = makeBox(xoffset, w, yoffset, h, "TOD");
 			addBoxFigure(geometrySink.Get(), m_boxTime);
 
-			m_boxIncs = makeBox(hgap * 3 + w4 + w2a, w2a, vtop + h3 + vgap, h3, "Incs");
+            getDimensions(1, 3, 1, vdivs, 1, vgap, h, yoffset);
+			m_boxIncs = makeBox(xoffset, w, yoffset, h, "INCS");
 			addBoxFigure(geometrySink.Get(), m_boxIncs);
 
-			m_boxTrackTemp = makeBox(hgap * 3 + w4 + w2a, w2a, vtop + h3 + vgap + h3 + vgap, h3, "TTemp");
+            getDimensions(2, 3, 1, vdivs, 2, vgap, h, yoffset);
+			m_boxTrackTemp = makeBox(xoffset, w, yoffset, h, "TTemp");
 			addBoxFigure(geometrySink.Get(), m_boxTrackTemp);
 
             geometrySink->Close();
