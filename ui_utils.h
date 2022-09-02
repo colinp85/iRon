@@ -30,12 +30,10 @@ float r2ay(float ry, int height)
 	return ry * (float)height;
 }
 
-Box makeBox(float x0, float w, float y0, float h, int containerWidth, int containerHeight, const std::string& title)
+void makeBox(float x0, float w, float y0, float h, int containerWidth, int containerHeight, const std::string& title, Box& r)
 {
-	Box r;
-
 	if (w <= 0 || h <= 0)
-		return r;
+		return;
 
 	r.x0 = r2ax(x0, containerWidth);
 	r.x1 = r2ax(x0 + w, containerWidth);
@@ -44,7 +42,6 @@ Box makeBox(float x0, float w, float y0, float h, int containerWidth, int contai
 	r.w = r.x1 - r.x0;
 	r.h = r.y1 - r.y0;
 	r.title = title;
-	return r;
 }
 
 void getDimensions(const int idx, const int totCols, const int divs, const int totdivs, const int divOffset, float gap, float& dim, float& offset)

@@ -52,17 +52,6 @@ public:
 
 protected:
 
-    struct Box
-    {
-        float x0 = 0;
-        float x1 = 0;
-        float y0 = 0;
-        float y1 = 0;
-        float w = 0;
-        float h = 0;
-        std::string title;
-    };
-
     virtual float2 getDefaultSize()
     {
         return float2(400, 150);
@@ -80,6 +69,17 @@ protected:
 
     virtual void onConfigChanged()
     {
+		mTextCol = g_cfg.getFloat4(m_name, "text_col", float4(1, 1, 1, 0.9f));
+		mGoodCol = g_cfg.getFloat4(m_name, "good_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
+		mBadCol = g_cfg.getFloat4(m_name, "bad_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
+		mOutlineCol = g_cfg.getFloat4(m_name, "outline_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
+		mWarnCol = g_cfg.getFloat4(m_name, "warn_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
+
+		mAllLapsCount = g_cfg.getBool(m_name, "fuel_all_laps_count", true);
+		mNumLapsToAvg = g_cfg.getInt(m_name, "fuel_estimate_avg_green_laps", 5);
+		mAdditionalFuel = g_cfg.getFloat(m_name, "fuel_additional_fuel", 0.0f);
+		mAutoRefuel = g_cfg.getBool(m_name, "fuel_auto_refuel", false);
+
         // Font stuff
         {
             mText.reset(m_dwriteFactory.Get());
@@ -152,32 +152,33 @@ protected:
 
             getDimensions(0, cols, 4, hdivs, 0, hgap, w, xoffset);
             getDimensions(0, 1, 3, vdivs, 0, vgap, h, yoffset);
-			m_boxFuel = makeBox(xoffset, w, yoffset, h, "Fuel");
-			addBoxFigure(geometrySink.Get(), m_boxFuel);
+			makeBox(xoffset, w, yoffset, h, m_width, m_height, "Fuel", m_boxFuel);
+			//m_boxFuel = makeBox(xoffset, w, yoffset, h, m_width, m_height, "Fuel");
+			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxFuel);
 
             getDimensions(1, cols, 2, hdivs, 4, hgap, w, xoffset);
             getDimensions(0, 2, 1, vdivs, 0, vgap, h, yoffset);
-			m_boxSession = makeBox(xoffset, w, yoffset, h, "Session");
-			addBoxFigure(geometrySink.Get(), m_boxSession);
+			makeBox(xoffset, w, yoffset, h, m_width, m_height, "Session", m_boxSession);
+			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxSession);
 
 
             getDimensions(1, 2, 2, vdivs, 1, vgap, h, yoffset);
-			m_boxLaps = makeBox(xoffset, w, yoffset, h, "Lap");
-			addBoxFigure(geometrySink.Get(), m_boxLaps);
+			makeBox(xoffset, w, yoffset, h, m_width, m_height, "Lap", m_boxLaps);
+			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxLaps);
 
 
             getDimensions(2, cols, 2, hdivs, 6, hgap, h, xoffset);
             getDimensions(0, 3, 1, vdivs, 0, vgap, h, yoffset);
-			m_boxTime = makeBox(xoffset, w, yoffset, h, "TOD");
-			addBoxFigure(geometrySink.Get(), m_boxTime);
+			makeBox(xoffset, w, yoffset, h, m_width, m_height, "TOD", m_boxTime);
+			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxTime);
 
             getDimensions(1, 3, 1, vdivs, 1, vgap, h, yoffset);
-			m_boxIncs = makeBox(xoffset, w, yoffset, h, "INCS");
-			addBoxFigure(geometrySink.Get(), m_boxIncs);
+			makeBox(xoffset, w, yoffset, h, m_width, m_height, "INCS", m_boxIncs);
+			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxIncs);
 
             getDimensions(2, 3, 1, vdivs, 2, vgap, h, yoffset);
-			m_boxTrackTemp = makeBox(xoffset, w, yoffset, h, "TTemp");
-			addBoxFigure(geometrySink.Get(), m_boxTrackTemp);
+			makeBox(xoffset, w, yoffset, h, m_width, m_height, "TTemp", m_boxTrackTemp);
+			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxTrackTemp);
 
             geometrySink->Close();
         }
@@ -318,18 +319,14 @@ protected:
     virtual void setFuel()
     {
 		const float xoff = 7;
-        const float4 textCol = g_cfg.getFloat4(m_name, "text_col", float4(1, 1, 1, 0.9f));
-        const float4 goodCol = g_cfg.getFloat4(m_name, "good_col", float4(0, 0.8f, 0, 0.6f));
-        const float4 warnCol = g_cfg.getFloat4(m_name, "warn_col", float4(1, 0.6f, 0, 1));
 
         const float fuelMax = ir_session.fuelMaxLtr;
         float sumFuel = 0;
         float avgPerLap = 0;
-		const float additionalFuel = g_cfg.getFloat(m_name, "fuel_additional_fuel", 0.0f);
 		const float remainingFuel = ir_FuelLevel.getFloat();
         const float remainingLaps = (float)getRemainingLaps();
 
-		m_brush->SetColor(textCol);
+		m_brush->SetColor(mTextCol);
 		mText.render(m_renderTarget.Get(), L"Rem:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.15f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 		mText.render(m_renderTarget.Get(), L"Avg:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.4f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 		mText.render(m_renderTarget.Get(), L"Add:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.65f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
@@ -371,8 +368,8 @@ protected:
 			if (atFinish <= 0)
 			{
 				mAdd = (remainingLaps * avgPerLap) - remainingFuel;
-                if (additionalFuel > 0)
-                    mAdd += avgPerLap * additionalFuel;
+                if (mAdditionalFuel > 0)
+                    mAdd += avgPerLap * mAdditionalFuel;
 			}
 
             if (isImperial())
@@ -380,16 +377,16 @@ protected:
 
 			swprintf(s, _countof(s), isImperial() ? L"%3.1f gl" : L"%3.1f lt", atFinish);
 
-			m_brush->SetColor(atFinish <= 0.0f ? warnCol : goodCol);
+			m_brush->SetColor(atFinish <= 0.0f ? mWarnCol : mGoodCol);
 			mText.render(m_renderTarget.Get(), s, mTextFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .9f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
-			m_brush->SetColor(textCol);
+			m_brush->SetColor(mTextCol);
 
 			// Add
 			if (mAdd >= 0)
 			{
                 mAdd = std::min(mAdd, fuelMax);
                 setAddFuel();
-				m_brush->SetColor(textCol);
+				m_brush->SetColor(mTextCol);
 			}
 		}
     }
@@ -402,8 +399,7 @@ protected:
     virtual void onEnteredPitRoad()
     {
         printf("onEnteredPitRoad()");
-		const bool autoRefuel = g_cfg.getBool(m_name, "fuel_auto_refuel", false);
-		if (autoRefuel)
+		if (mAutoRefuel)
 		{
 			if (!mFuelSet && mAdd > 0 && ir_session.sessionType != SessionType::QUALIFY)
 			{
@@ -424,8 +420,6 @@ protected:
     {
         printf("onLapChanged()\n");
         const int  carIdx = ir_session.driverCarIdx;
-		const bool allLapsCount = g_cfg.getBool(m_name, "fuel_all_laps_count", true);
-		const int numLapsToAvg = g_cfg.getInt(m_name, "fuel_estimate_avg_green_laps", 5);
 
 		float remainingFuel = ir_FuelLevel.getFloat();
 
@@ -435,10 +429,10 @@ protected:
 		if (mIsFuelLapValid)
 			mFuelLapsUsed.push_back(mUsed);
 
-		while (mFuelLapsUsed.size() >= numLapsToAvg)
+		while (mFuelLapsUsed.size() >= mNumLapsToAvg)
 			mFuelLapsUsed.pop_front();
 
-        if (allLapsCount)
+        if (mAllLapsCount)
         {
             mIsFuelLapValid = true;
         }
@@ -453,13 +447,8 @@ protected:
 
     virtual void onUpdate()
     {
-        const float4 textCol = g_cfg.getFloat4(m_name, "text_col", float4(1, 1, 1, 0.9f));
-        const float4 outlineCol = g_cfg.getFloat4(m_name, "outline_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
-        const float4 goodCol = g_cfg.getFloat4(m_name, "good_col", float4(0, 0.8f, 0, 0.6f));
-        const float4 badCol = g_cfg.getFloat4(m_name, "bad_col", float4(0.8f, 0.1f, 0.1f, 0.6f));
-
         m_renderTarget->BeginDraw();
-        m_brush->SetColor(textCol);
+        m_brush->SetColor(mTextCol);
 
         setTrackTemp();
         setTimeOfDay();
@@ -468,22 +457,23 @@ protected:
         setIncs();
         setFuel();
 
-		m_brush->SetColor(outlineCol);
+		m_brush->SetColor(mOutlineCol);
 		m_renderTarget->DrawGeometry(m_boxPathGeometry.Get(), m_brush.Get());
 
 		mText.render(m_renderTarget.Get(), L"Lap", mTextFormatSmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
         if (ir_PitsOpen.getBool())
         {
-            m_brush->SetColor(goodCol);
+            m_brush->SetColor(mGoodCol);
             mText.render(m_renderTarget.Get(), L"Open", mTextFormatSmall.Get(), m_boxFuel.x0, m_boxFuel.x1, m_boxFuel.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
         }
         else
         {
-            m_brush->SetColor(badCol);
+            m_brush->SetColor(mBadCol);
             mText.render(m_renderTarget.Get(), L"Closed", mTextFormatSmall.Get(), m_boxFuel.x0, m_boxFuel.x1, m_boxFuel.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
         }
-        m_brush->SetColor(outlineCol);
+
+        m_brush->SetColor(mOutlineCol);
 
 		mText.render(m_renderTarget.Get(), L"Session", mTextFormatSmall.Get(), m_boxSession.x0, m_boxSession.x1, m_boxSession.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 		mText.render(m_renderTarget.Get(), L"Time", mTextFormatSmall.Get(), m_boxTime.x0, m_boxTime.x1, m_boxTime.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -491,57 +481,6 @@ protected:
 		mText.render(m_renderTarget.Get(), L"TTemp", mTextFormatSmall.Get(), m_boxTrackTemp.x0, m_boxTrackTemp.x1, m_boxTrackTemp.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
         m_renderTarget->EndDraw();
-    }
-
-    void addBoxFigure(ID2D1GeometrySink* geometrySink, const Box& box)
-    {
-        if (!box.title.empty())
-        {
-            const float hctr = (box.x0 + box.x1) * 0.5f;
-            const float titleWidth = std::min(box.w, 6 + mText.getExtent(toWide(box.title).c_str(), mTextFormat.Get(), box.x0, box.x1, DWRITE_TEXT_ALIGNMENT_CENTER).x);
-            geometrySink->BeginFigure(float2(hctr - titleWidth / 2, box.y0), D2D1_FIGURE_BEGIN_HOLLOW);
-            geometrySink->AddLine(float2(box.x0, box.y0));
-            geometrySink->AddLine(float2(box.x0, box.y1));
-            geometrySink->AddLine(float2(box.x1, box.y1));
-            geometrySink->AddLine(float2(box.x1, box.y0));
-            geometrySink->AddLine(float2(hctr + titleWidth / 2, box.y0));
-            geometrySink->EndFigure(D2D1_FIGURE_END_OPEN);
-        }
-        else
-        {
-            geometrySink->BeginFigure(float2(box.x0, box.y0), D2D1_FIGURE_BEGIN_HOLLOW);
-            geometrySink->AddLine(float2(box.x0, box.y1));
-            geometrySink->AddLine(float2(box.x1, box.y1));
-            geometrySink->AddLine(float2(box.x1, box.y0));
-            geometrySink->EndFigure(D2D1_FIGURE_END_CLOSED);
-        }
-    }
-
-    float r2ax(float rx)
-    {
-        return rx * (float)m_width;
-    }
-
-    float r2ay(float ry)
-    {
-        return ry * (float)m_height;
-    }
-
-    Box makeBox(float x0, float w, float y0, float h, const std::string& title)
-    {
-        Box r;
-
-        if (w <= 0 || h <= 0)
-            return r;
-
-        r.x0 = r2ax(x0);
-        r.x1 = r2ax(x0 + w);
-        r.y0 = r2ay(y0);
-        r.y1 = r2ay(y0 + h);
-        r.w = r.x1 - r.x0;
-        r.h = r.y1 - r.y0;
-        r.title = title;
-        return r;
     }
 
 protected:
@@ -577,4 +516,16 @@ protected:
     float               mAdd = 0;
     float               mUsed = 0;
     bool                mFuelSet = true;
+
+    float4              mTextCol;
+    float4              mOutlineCol;
+    float4              mGoodCol;
+    float4              mBadCol;
+    float4              mWarnCol;
+
+    // fuel related config
+    bool                mAllLapsCount;
+    int                 mNumLapsToAvg;
+    float               mAdditionalFuel;
+    bool                mAutoRefuel;
 };

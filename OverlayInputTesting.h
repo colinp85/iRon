@@ -28,17 +28,6 @@ public:
 
 protected:
 
-    /*struct Box
-    {
-        float x0 = 0;
-        float x1 = 0;
-        float y0 = 0;
-        float y1 = 0;
-        float w = 0;
-        float h = 0;
-        std::string title;
-    };*/
-
     virtual float2 getDefaultSize()
     {
         return float2(400, 150);
@@ -74,33 +63,13 @@ protected:
             mTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
             mTextFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
 
-            HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"en-us", &mTextFormatBold));
-            mTextFormatBold->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-            mTextFormatBold->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-
             HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize * 1.4f, L"en-us", &mTextFormatXLarge));
             mTextFormatXLarge->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
             mTextFormatXLarge->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
 
-            HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize * 1.2f, L"en-us", &mTextFormatLarge));
-            mTextFormatLarge->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-            mTextFormatLarge->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-
-            HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize * 1.0f, L"en-us", &mTextFormatMed));
-            mTextFormatMed->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-            mTextFormatMed->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-
             HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_LIGHT, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize * 0.7f, L"en-us", &mTextFormatSmall));
             mTextFormatSmall->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
             mTextFormatSmall->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-
-            HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_LIGHT, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize * 0.6f, L"en-us", &mTextFormatVerySmall));
-            mTextFormatVerySmall->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-            mTextFormatVerySmall->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-
-            HRCHECK(m_dwriteFactory->CreateTextFormat(toWide(font).c_str(), NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize * 3.0f, L"en-us", &mTextFormatGear));
-            mTextFormatGear->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-            mTextFormatGear->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
         }
 
         // Background geometry
@@ -140,15 +109,15 @@ protected:
 
             getDimensions(0, cols, 1, hdivs, 0, hgap, w, xoffset);
             getDimensions(0, vdivs, 1, vdivs, 0, vgap, h, yoffset);
-            m_boxClutch = makeBox(xoffset, w, yoffset, h, m_width, m_height, "Clutch");
+            makeBox(xoffset, w, yoffset, h, m_width, m_height, "Clutch", m_boxClutch);
             addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxClutch);
 
             getDimensions(1, cols, 1, hdivs, 1, hgap, w, xoffset);
-            m_boxBrake = makeBox(xoffset, w, yoffset, h, m_width, m_height, "Brake");
+            makeBox(xoffset, w, yoffset, h, m_width, m_height, "Brake", m_boxBrake);
             addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxBrake);
 
             getDimensions(2, cols, 1, hdivs, 2, hgap, w, xoffset);
-            m_boxThrottle = makeBox(xoffset, w, yoffset, h, m_width, m_height, "Throttle");
+            makeBox(xoffset, w, yoffset, h, m_width, m_height, "Throttle", m_boxThrottle);
             addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxThrottle);
 
             geometrySink->Close();
@@ -222,13 +191,8 @@ protected:
     Box m_boxClutch;
 
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  mTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat>  mTextFormatBold;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  mTextFormatXLarge;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat>  mTextFormatLarge;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat>  mTextFormatMed;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  mTextFormatSmall;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat>  mTextFormatVerySmall;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat>  mTextFormatGear;
 
     Microsoft::WRL::ComPtr<ID2D1PathGeometry1> m_boxPathGeometry;
     Microsoft::WRL::ComPtr<ID2D1PathGeometry1> m_backgroundPathGeometry;
@@ -237,6 +201,7 @@ protected:
 
     float4              mTextCol;
     float4              mOutlineCol;
+
     float4              mBrakeCol;
     float4              mThrottleCol;
     float4              mClutchCol;
