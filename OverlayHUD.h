@@ -69,16 +69,16 @@ protected:
 
     virtual void onConfigChanged()
     {
-		mTextCol = g_cfg.getFloat4(m_name, "text_col", float4(1, 1, 1, 0.9f));
-		mGoodCol = g_cfg.getFloat4(m_name, "good_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
-		mBadCol = g_cfg.getFloat4(m_name, "bad_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
-		mOutlineCol = g_cfg.getFloat4(m_name, "outline_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
-		mWarnCol = g_cfg.getFloat4(m_name, "warn_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
+        mTextCol = g_cfg.getFloat4(m_name, "text_col", float4(1, 1, 1, 0.9f));
+        mGoodCol = g_cfg.getFloat4(m_name, "good_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
+        mBadCol = g_cfg.getFloat4(m_name, "bad_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
+        mOutlineCol = g_cfg.getFloat4(m_name, "outline_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
+        mWarnCol = g_cfg.getFloat4(m_name, "warn_col", float4(0.7f, 0.7f, 0.7f, 0.9f));
 
-		mAllLapsCount = g_cfg.getBool(m_name, "fuel_all_laps_count", true);
-		mNumLapsToAvg = g_cfg.getInt(m_name, "fuel_estimate_avg_green_laps", 5);
-		mAdditionalFuel = g_cfg.getFloat(m_name, "fuel_additional_fuel", 0.0f);
-		mAutoRefuel = g_cfg.getBool(m_name, "fuel_auto_refuel", false);
+        mAllLapsCount = g_cfg.getBool(m_name, "fuel_all_laps_count", true);
+        mNumLapsToAvg = g_cfg.getInt(m_name, "fuel_estimate_avg_green_laps", 5);
+        mAdditionalFuel = g_cfg.getFloat(m_name, "fuel_additional_fuel", 0.0f);
+        mAutoRefuel = g_cfg.getBool(m_name, "fuel_auto_refuel", false);
 
         // Font stuff
         {
@@ -152,33 +152,33 @@ protected:
 
             getDimensions(0, cols, 4, hdivs, 0, hgap, w, xoffset);
             getDimensions(0, 1, 3, vdivs, 0, vgap, h, yoffset);
-			makeBox(xoffset, w, yoffset, h, m_width, m_height, "Fuel", m_boxFuel);
-			//m_boxFuel = makeBox(xoffset, w, yoffset, h, m_width, m_height, "Fuel");
-			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxFuel);
+            makeBox(xoffset, w, yoffset, h, m_width, m_height, "Fuel", m_boxFuel);
+            //m_boxFuel = makeBox(xoffset, w, yoffset, h, m_width, m_height, "Fuel");
+            addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxFuel);
 
             getDimensions(1, cols, 2, hdivs, 4, hgap, w, xoffset);
             getDimensions(0, 2, 1, vdivs, 0, vgap, h, yoffset);
-			makeBox(xoffset, w, yoffset, h, m_width, m_height, "Session", m_boxSession);
-			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxSession);
+            makeBox(xoffset, w, yoffset, h, m_width, m_height, "Session", m_boxSession);
+            addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxSession);
 
 
             getDimensions(1, 2, 2, vdivs, 1, vgap, h, yoffset);
-			makeBox(xoffset, w, yoffset, h, m_width, m_height, "Lap", m_boxLaps);
-			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxLaps);
+            makeBox(xoffset, w, yoffset, h, m_width, m_height, "Lap", m_boxLaps);
+            addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxLaps);
 
 
             getDimensions(2, cols, 2, hdivs, 6, hgap, h, xoffset);
             getDimensions(0, 3, 1, vdivs, 0, vgap, h, yoffset);
-			makeBox(xoffset, w, yoffset, h, m_width, m_height, "TOD", m_boxTime);
-			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxTime);
+            makeBox(xoffset, w, yoffset, h, m_width, m_height, "TOD", m_boxTime);
+            addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxTime);
 
             getDimensions(1, 3, 1, vdivs, 1, vgap, h, yoffset);
-			makeBox(xoffset, w, yoffset, h, m_width, m_height, "INCS", m_boxIncs);
-			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxIncs);
+            makeBox(xoffset, w, yoffset, h, m_width, m_height, "INCS", m_boxIncs);
+            addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxIncs);
 
             getDimensions(2, 3, 1, vdivs, 2, vgap, h, yoffset);
-			makeBox(xoffset, w, yoffset, h, m_width, m_height, "TTemp", m_boxTrackTemp);
-			addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxTrackTemp);
+            makeBox(xoffset, w, yoffset, h, m_width, m_height, "TTemp", m_boxTrackTemp);
+            addBoxFigure(mText, mTextFormat, geometrySink.Get(), m_boxTrackTemp);
 
             geometrySink->Close();
         }
@@ -204,15 +204,15 @@ protected:
 
     virtual void setAddFuel()
     {
-		const float xoff = 7;
+        const float xoff = 7;
         float add = mAdd;
 
         if (isImperial())
-			add *= 0.264172f;
+            add *= 0.264172f;
 
         wchar_t s[256] = { 0 };
-		swprintf(s, _countof(s), isImperial() ? L"%3.1f gl" : L"%3.1f lt", add);
-		mText.render(m_renderTarget.Get(), s, mTextFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .65f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+        swprintf(s, _countof(s), isImperial() ? L"%3.1f gl" : L"%3.1f lt", add);
+        mText.render(m_renderTarget.Get(), s, mTextFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .65f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
     }
 
     virtual bool isImperial()
@@ -253,21 +253,21 @@ protected:
         else
             tempwss << "C";
 
-		mText.render(m_renderTarget.Get(), tempwss.str().c_str(), mTextFormat.Get(), m_boxTrackTemp.x0, m_boxTrackTemp.x1, m_boxTrackTemp.y0 + m_boxTrackTemp.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        mText.render(m_renderTarget.Get(), tempwss.str().c_str(), mTextFormat.Get(), m_boxTrackTemp.x0, m_boxTrackTemp.x1, m_boxTrackTemp.y0 + m_boxTrackTemp.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
     }
 
     virtual void setTimeOfDay()
     {
-		time_t     now = time(0);
-		struct tm  tstruct;
-		char       timeStr[9];
-		tstruct = *localtime(&now);
+        time_t     now = time(0);
+        struct tm  tstruct;
+        char       timeStr[9];
+        tstruct = *localtime(&now);
 
-		strftime(timeStr, sizeof(timeStr), "%H:%M", &tstruct);
+        strftime(timeStr, sizeof(timeStr), "%H:%M", &tstruct);
         std::wstringstream twss;
         twss << timeStr;
-		
-		mText.render(m_renderTarget.Get(), twss.str().c_str(), mTextFormat.Get(), m_boxTime.x0, m_boxTime.x1, m_boxTime.y0 + m_boxTime.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        
+        mText.render(m_renderTarget.Get(), twss.str().c_str(), mTextFormat.Get(), m_boxTime.x0, m_boxTime.x1, m_boxTime.y0 + m_boxTime.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
     }
 
     virtual int getCarIdx()
@@ -319,11 +319,11 @@ protected:
             swprintf(laps, _countof(laps), L"%.01f / ~%.0f", getRaceProgress(), getEstimatedTotalLaps());
         }
         else
-			swprintf(lapstr, _countof(lapstr), L"%d", (int)remainingLaps);
+            swprintf(lapstr, _countof(lapstr), L"%d", (int)remainingLaps);
 
         
-		mText.render(m_renderTarget.Get(), lapstr, mTextFormatLarge.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.40f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-		mText.render(m_renderTarget.Get(), laps, mTextFormatVerySmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.75f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        mText.render(m_renderTarget.Get(), lapstr, mTextFormatLarge.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.40f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        mText.render(m_renderTarget.Get(), laps, mTextFormatVerySmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.75f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
     }
 
     virtual void setSessionTime()
@@ -334,64 +334,64 @@ protected:
         // TODO Quali is Time Limited & Lap Limited
         if (!isTimeLimited() || ir_session.sessionType == SessionType::UNKNOWN)
             ss << "n/a";
-		else
-		{
-			const double sessionTime = remainingSessionTime >= 0 ? remainingSessionTime : ir_SessionTime.getDouble();
+        else
+        {
+            const double sessionTime = remainingSessionTime >= 0 ? remainingSessionTime : ir_SessionTime.getDouble();
 
-			const int    hours = int(sessionTime / 3600.0);
-			const int    mins = int(sessionTime / 60.0) % 60;
-			const int    secs = (int)fmod(sessionTime, 60.0);
+            const int    hours = int(sessionTime / 3600.0);
+            const int    mins = int(sessionTime / 60.0) % 60;
+            const int    secs = (int)fmod(sessionTime, 60.0);
 
             if (hours)
                 ss << hours << ":";
 
-			ss << std::setfill(L'0') << std::setw(2) << mins << ":";
-			ss << std::setfill(L'0') << std::setw(2) << secs;
-		}
+            ss << std::setfill(L'0') << std::setw(2) << mins << ":";
+            ss << std::setfill(L'0') << std::setw(2) << secs;
+        }
 
-		mText.render(m_renderTarget.Get(), ss.str().c_str(), mTextFormatSmall.Get(), m_boxSession.x0, m_boxSession.x1, m_boxSession.y0 + m_boxSession.h * 0.55f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        mText.render(m_renderTarget.Get(), ss.str().c_str(), mTextFormatSmall.Get(), m_boxSession.x0, m_boxSession.x1, m_boxSession.y0 + m_boxSession.h * 0.55f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
     }
 
     virtual void setIncs()
-	{
+    {
         std::wstringstream wss;
         wss << ir_PlayerCarMyIncidentCount.getInt() << "x";
-		mText.render(m_renderTarget.Get(), wss.str().c_str(), mTextFormat.Get(), m_boxIncs.x0, m_boxIncs.x1, m_boxIncs.y0 + m_boxIncs.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-	}
+        mText.render(m_renderTarget.Get(), wss.str().c_str(), mTextFormat.Get(), m_boxIncs.x0, m_boxIncs.x1, m_boxIncs.y0 + m_boxIncs.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+    }
 
     virtual void setFuel()
     {
-		const float xoff = 7;
+        const float xoff = 7;
 
         const float fuelMax = ir_session.fuelMaxLtr;
         float sumFuel = 0;
         float avgPerLap = 0;
-		const float remainingFuel = ir_FuelLevel.getFloat();
+        const float remainingFuel = ir_FuelLevel.getFloat();
         //const float remainingLaps = (float)getRemainingLaps();
         const float remainingLaps = (float)getEstimatedTotalLaps() - getRaceProgress();
 
-		m_brush->SetColor(mTextCol);
-		mText.render(m_renderTarget.Get(), L"Rem:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.15f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-		mText.render(m_renderTarget.Get(), L"Avg:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.4f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-		mText.render(m_renderTarget.Get(), L"Add:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.65f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-		mText.render(m_renderTarget.Get(), L"Fin:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.9f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+        m_brush->SetColor(mTextCol);
+        mText.render(m_renderTarget.Get(), L"Rem:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.15f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+        mText.render(m_renderTarget.Get(), L"Avg:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.4f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+        mText.render(m_renderTarget.Get(), L"Add:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.65f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+        mText.render(m_renderTarget.Get(), L"Fin:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.9f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 
         wchar_t s[512];
 
-		for (float v : mFuelLapsUsed)
-			sumFuel += v;
+        for (float v : mFuelLapsUsed)
+            sumFuel += v;
 
         if (!mFuelLapsUsed.empty())
             avgPerLap = sumFuel / (float)mFuelLapsUsed.size();
 
-		// Remaining
-		swprintf(s, _countof(s), isImperial() ? L"%3.1f gl" : L"%3.1f lt", remainingFuel);
-		mText.render(m_renderTarget.Get(), s, mTextFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 0.15f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+        // Remaining
+        swprintf(s, _countof(s), isImperial() ? L"%3.1f gl" : L"%3.1f lt", remainingFuel);
+        mText.render(m_renderTarget.Get(), s, mTextFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * 0.15f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
 
-		// Per Lap
-		if (avgPerLap > 0)
-		{
-			float avgVal = avgPerLap;
+        // Per Lap
+        if (avgPerLap > 0)
+        {
+            float avgVal = avgPerLap;
             float usedVal = mUsed;
             if (isImperial())
             {
@@ -399,40 +399,40 @@ protected:
                 usedVal *= 0.264172f;
             }
 
-			swprintf(s, _countof(s), isImperial() ? L"%5.2f [%5.2f] gl" : L"%5.2f [%5.2f] lt", avgVal, usedVal);
-			mText.render(m_renderTarget.Get(), s, mTextFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .4f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
-		}
+            swprintf(s, _countof(s), isImperial() ? L"%5.2f [%5.2f] gl" : L"%5.2f [%5.2f] lt", avgVal, usedVal);
+            mText.render(m_renderTarget.Get(), s, mTextFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .4f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+        }
 
-		// To Finish
-		if (remainingLaps >= 0 && avgPerLap > 0)
-		{
-			float atFinish = std::max(0.0f, remainingFuel - remainingLaps * avgPerLap);
+        // To Finish
+        if (remainingLaps >= 0 && avgPerLap > 0)
+        {
+            float atFinish = std::max(0.0f, remainingFuel - remainingLaps * avgPerLap);
             mAdd = 0;
 
-			if (atFinish <= 0)
-			{
-				mAdd = (remainingLaps * avgPerLap) - remainingFuel;
+            if (atFinish <= 0)
+            {
+                mAdd = (remainingLaps * avgPerLap) - remainingFuel;
                 if (mAdditionalFuel > 0)
                     mAdd += avgPerLap * mAdditionalFuel;
-			}
+            }
 
             if (isImperial())
                 atFinish *= 0.264172f;
 
-			swprintf(s, _countof(s), isImperial() ? L"%3.1f gl" : L"%3.1f lt", atFinish);
+            swprintf(s, _countof(s), isImperial() ? L"%3.1f gl" : L"%3.1f lt", atFinish);
 
-			m_brush->SetColor(atFinish <= 0.0f ? mWarnCol : mGoodCol);
-			mText.render(m_renderTarget.Get(), s, mTextFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .9f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
-			m_brush->SetColor(mTextCol);
+            m_brush->SetColor(atFinish <= 0.0f ? mWarnCol : mGoodCol);
+            mText.render(m_renderTarget.Get(), s, mTextFormatMed.Get(), m_boxFuel.x0, m_boxFuel.x1 - xoff, m_boxFuel.y0 + m_boxFuel.h * .9f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+            m_brush->SetColor(mTextCol);
 
-			// Add
-			if (mAdd >= 0)
-			{
+            // Add
+            if (mAdd >= 0)
+            {
                 mAdd = std::min(mAdd, fuelMax);
                 setAddFuel();
-				m_brush->SetColor(mTextCol);
-			}
-		}
+                m_brush->SetColor(mTextCol);
+            }
+        }
     }
 
     bool inPit()
@@ -443,15 +443,15 @@ protected:
     virtual void onEnteredPitRoad()
     {
         printf("onEnteredPitRoad()");
-		if (mAutoRefuel)
-		{
-			if (!mFuelSet && mAdd > 0 && ir_session.sessionType != SessionType::QUALIFY)
-			{
-				irsdk_broadcastMsg(irsdk_BroadcastPitCommand, irsdk_PitCommand_Fuel, (int)round(mAdd));
+        if (mAutoRefuel)
+        {
+            if (!mFuelSet && mAdd > 0 && ir_session.sessionType != SessionType::QUALIFY)
+            {
+                irsdk_broadcastMsg(irsdk_BroadcastPitCommand, irsdk_PitCommand_Fuel, (int)round(mAdd));
                 irsdk_broadcastMsg(irsdk_BroadcastPitCommand, irsdk_PitCommand_Fuel, 0);
-				mFuelSet = true;
-			}
-		}
+                mFuelSet = true;
+            }
+        }
     }
 
     virtual void onLeftPitRoad()
@@ -465,16 +465,16 @@ protected:
         printf("onLapChanged()\n");
         const int  carIdx = ir_session.driverCarIdx;
 
-		float remainingFuel = ir_FuelLevel.getFloat();
+        float remainingFuel = ir_FuelLevel.getFloat();
 
-		mUsed = std::max(0.0f, mRemainingAtLapStart - remainingFuel);
-		mRemainingAtLapStart = remainingFuel;
+        mUsed = std::max(0.0f, mRemainingAtLapStart - remainingFuel);
+        mRemainingAtLapStart = remainingFuel;
 
-		if (mIsFuelLapValid)
-			mFuelLapsUsed.push_back(mUsed);
+        if (mIsFuelLapValid)
+            mFuelLapsUsed.push_back(mUsed);
 
-		while (mFuelLapsUsed.size() >= mNumLapsToAvg)
-			mFuelLapsUsed.pop_front();
+        while (mFuelLapsUsed.size() >= mNumLapsToAvg)
+            mFuelLapsUsed.pop_front();
 
         if (mAllLapsCount)
         {
@@ -501,10 +501,10 @@ protected:
         setIncs();
         setFuel();
 
-		m_brush->SetColor(mOutlineCol);
-		m_renderTarget->DrawGeometry(m_boxPathGeometry.Get(), m_brush.Get());
+        m_brush->SetColor(mOutlineCol);
+        m_renderTarget->DrawGeometry(m_boxPathGeometry.Get(), m_brush.Get());
 
-		mText.render(m_renderTarget.Get(), L"Lap", mTextFormatSmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        mText.render(m_renderTarget.Get(), L"Lap", mTextFormatSmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
         if (ir_PitsOpen.getBool())
         {
@@ -519,10 +519,10 @@ protected:
 
         m_brush->SetColor(mOutlineCol);
 
-		mText.render(m_renderTarget.Get(), L"Session", mTextFormatSmall.Get(), m_boxSession.x0, m_boxSession.x1, m_boxSession.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-		mText.render(m_renderTarget.Get(), L"Time", mTextFormatSmall.Get(), m_boxTime.x0, m_boxTime.x1, m_boxTime.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-		mText.render(m_renderTarget.Get(), L"Incs", mTextFormatSmall.Get(), m_boxIncs.x0, m_boxIncs.x1, m_boxIncs.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-		mText.render(m_renderTarget.Get(), L"TTemp", mTextFormatSmall.Get(), m_boxTrackTemp.x0, m_boxTrackTemp.x1, m_boxTrackTemp.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        mText.render(m_renderTarget.Get(), L"Session", mTextFormatSmall.Get(), m_boxSession.x0, m_boxSession.x1, m_boxSession.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        mText.render(m_renderTarget.Get(), L"Time", mTextFormatSmall.Get(), m_boxTime.x0, m_boxTime.x1, m_boxTime.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        mText.render(m_renderTarget.Get(), L"Incs", mTextFormatSmall.Get(), m_boxIncs.x0, m_boxIncs.x1, m_boxIncs.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        mText.render(m_renderTarget.Get(), L"TTemp", mTextFormatSmall.Get(), m_boxTrackTemp.x0, m_boxTrackTemp.x1, m_boxTrackTemp.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
         m_renderTarget->EndDraw();
     }
