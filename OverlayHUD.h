@@ -232,6 +232,9 @@ protected:
 
     virtual double getRemainingLaps()
     {
+        if (ir_SessionFlags.getInt() & (irsdk_white))
+            return (double)1;
+
         if (isTimeLimited())
             return (0.5 + ir_SessionTimeRemain.getDouble() / ir_estimateLaptime());
         else
@@ -267,20 +270,60 @@ protected:
 		mText.render(m_renderTarget.Get(), twss.str().c_str(), mTextFormat.Get(), m_boxTime.x0, m_boxTime.x1, m_boxTime.y0 + m_boxTime.h * 0.5f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
     }
 
+    virtual int getCarIdx()
+    {
+        return ir_session.driverCarIdx;
+    }
+
+    virtual float getRaceProgress()
+    {
+        // returns float of laps completed
+        float lapsCompleted = ir_CarIdxLapCompleted.getFloat(getCarIdx());
+        float lapPct = ir_CarIdxLapDistPct.getFloat(getCarIdx());
+
+        return lapsCompleted + lapPct;
+    }
+
+    virtual int getLapsStarted()
+    {
+        return ir_CarIdxLap.getInt(getCarIdx());
+    }
+
+    virtual int getLapsCompleted()
+    {
+        return ir_CarIdxLapCompleted.getInt(getCarIdx());
+    }
+
+    virtual double getEstimatedTotalLaps()
+    {
+        return std::ceil(double(getLapsCompleted()) + getRemainingLaps());
+    }
+
     virtual void setLaps()
     {
         wchar_t lapstr[100];
+        wchar_t laps[100];
         const double remainingLaps = getRemainingLaps();
+        //const double remainingLaps = getEstimatedTotalLaps() - getRaceProgress();
+        //int lapsStarted = getLapsStarted();
+
 
         if (ir_session.sessionType == SessionType::UNKNOWN || remainingLaps < 0)
+        {
+            swprintf(laps, _countof(laps), L"-- / --");
             swprintf(lapstr, _countof(lapstr), L"--");
+        }
         else if (isTimeLimited())
+        {
             swprintf(lapstr, _countof(lapstr), L"~%.01f", remainingLaps);
+            swprintf(laps, _countof(laps), L"%.01f / ~%.0f", getRaceProgress(), getEstimatedTotalLaps());
+        }
         else
 			swprintf(lapstr, _countof(lapstr), L"%d", (int)remainingLaps);
 
+        
 		mText.render(m_renderTarget.Get(), lapstr, mTextFormatLarge.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.40f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-		mText.render(m_renderTarget.Get(), L"TO GO", mTextFormatVerySmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.75f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+		mText.render(m_renderTarget.Get(), laps, mTextFormatVerySmall.Get(), m_boxLaps.x0, m_boxLaps.x1, m_boxLaps.y0 + m_boxLaps.h * 0.75f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
     }
 
     virtual void setSessionTime()
@@ -324,7 +367,8 @@ protected:
         float sumFuel = 0;
         float avgPerLap = 0;
 		const float remainingFuel = ir_FuelLevel.getFloat();
-        const float remainingLaps = (float)getRemainingLaps();
+        //const float remainingLaps = (float)getRemainingLaps();
+        const float remainingLaps = (float)getEstimatedTotalLaps() - getRaceProgress();
 
 		m_brush->SetColor(mTextCol);
 		mText.render(m_renderTarget.Get(), L"Rem:", mTextFormatMed.Get(), m_boxFuel.x0 + xoff, m_boxFuel.x1, m_boxFuel.y0 + m_boxFuel.h * 0.15f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
